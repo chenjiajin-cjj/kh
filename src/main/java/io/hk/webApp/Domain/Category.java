@@ -2,7 +2,12 @@ package io.hk.webApp.Domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
+import io.hk.webApp.DataAccess.CategorySet;
+import io.hk.webApp.DataAccess.GroupSet;
+import io.hk.webApp.Tools.OtherExcetion;
+import org.apache.commons.lang3.StringUtils;
 
 public class Category extends ViewStore {
 
@@ -50,6 +55,92 @@ public class Category extends ViewStore {
 	@JsonProperty(value = "pcode")
 	public void setPcode(String pcode) {
 		set("pcode", pcode);
+	}
+
+	/* 分组排序 sort */
+	@JsonProperty(value = "sort")
+	public Integer getSort() {
+		return (Integer) get("sort");
+	}
+
+	@JsonProperty(value = "sort")
+	public void setSort(Integer sort) {
+		set("sort", sort);
+	}
+
+	/* 是否显示 1显示 2不显示 status */
+	@JsonProperty(value = "status")
+	public String getStatus() {
+		return (String) get("status");
+	}
+
+	@JsonProperty(value = "status")
+	public void setStatus(String status) {
+		set("status", status);
+	}
+
+	/* 上级分组的id fatherId */
+	@JsonProperty(value = "fatherId")
+	public String getFatherId() {
+		return (String) get("fatherId");
+	}
+
+	@JsonProperty(value = "fatherId")
+	public void setFatherId(String fatherId) {
+		set("fatherId", fatherId);
+	}
+	/* 供应商的id factoryId */
+	@JsonProperty(value = "factoryId")
+	public String getFactoryId() {
+		return (String) get("factoryId");
+	}
+
+	@JsonProperty(value = "factoryId")
+	public void setFactoryId(String factoryId) {
+		set("factoryId", factoryId);
+	}
+	/* 商品数量 */
+	@JsonProperty(value = "number")
+	public Integer getNumber() {
+		return (Integer) get("number");
+	}
+
+	@JsonProperty(value = "number")
+	public void setNumber(Integer number) {
+		set("number", number);
+	}
+
+	/**
+	 * 修改子分组
+	 */
+	public boolean updateById(Category category){
+		if(StringUtils.isEmpty(category.getId())){
+			throw new OtherExcetion("请选择要修改的子分组");
+		}
+		CategorySet categorySet = Holder.getBean(CategorySet.class);
+		return categorySet.Update(category.getId(),category) > 0;
+	}
+
+	/**
+	 * 删除子分组
+	 */
+	public boolean deleteById(String id){
+		if(StringUtils.isEmpty(id)){
+			throw new OtherExcetion("请选择要删除的子分组");
+		}
+		CategorySet categorySet = Holder.getBean(CategorySet.class);
+		return categorySet.Delete(id) > 0;
+	}
+
+	/**
+	 * 查询单个子分组
+	 */
+	public Category getById(String id){
+		if(StringUtils.isEmpty(id)){
+			throw new OtherExcetion("请选择要查询的子分组");
+		}
+		CategorySet categorySet = Holder.getBean(CategorySet.class);
+		return categorySet.Get(id);
 	}
 
 }

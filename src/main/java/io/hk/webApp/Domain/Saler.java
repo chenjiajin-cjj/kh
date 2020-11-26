@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.framecore.Orm.ViewStore;
 
+/**
+ * 经销商
+ */
 public class Saler  extends ViewStore  {
 	
 	// _id

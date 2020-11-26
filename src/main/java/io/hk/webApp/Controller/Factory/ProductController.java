@@ -16,7 +16,7 @@ import io.hk.webApp.Domain.Product;
 import io.hk.webApp.Tools.TablePagePars;
 
 /**
- * 商品管理
+ * 供应商商品管理
  */
 @RestController
 @RequestMapping("api/v1/Factory/Product/")
@@ -30,7 +30,7 @@ public class ProductController {
 
 	@Autowired
 	private SystemUtil systemUtil;
-	
+
 	/**
 	 * 新增
 	 */
@@ -38,7 +38,7 @@ public class ProductController {
 	public Result add(@RequestBody Product product) {
 		User user = systemUtil.getUser(httpServletRequest);
 		if (null != user){
-			product.setUserId(user.getId());
+			product.setFactoryId(user.getId());
 		}else{
 			throw new OtherExcetion("登录凭证已失效");
 		}
@@ -50,15 +50,15 @@ public class ProductController {
 	 */
 	@PostMapping("modify")
 	public Result modify(@RequestBody Product product) {
-		return productService.updateProduct(product) ? Result.succeed("修改成功") : Result.failure("修改失败");
+		return product.updateProduct(product) ? Result.succeed("修改成功") : Result.failure("修改失败");
 	}
-	
+
 	/**
 	 * 删除
 	 */
 	@DeleteMapping("delete")
 	public Result delete(String id) {
-		return productService.deleteProductById(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
+		return new Product().deleteById(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class ProductController {
 		Product product = new Product();
 		product.setId(id);
 		product.setStatus("1");
-		return productService.updateProduct(product) ? Result.succeed("操作成功") : Result.failure("操作失败");
+		return product.updateProduct(product) ? Result.succeed("操作成功") : Result.failure("操作失败");
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class ProductController {
 		Product product = new Product();
 		product.setId(id);
 		product.setStatus("2");
-		return productService.updateProduct(product) ? Result.succeed("操作成功") : Result.failure("操作失败");
+		return product.updateProduct(product) ? Result.succeed("操作成功") : Result.failure("操作失败");
 	}
 
 	/**
@@ -94,16 +94,20 @@ public class ProductController {
 	 */
 	@GetMapping("searchById")
 	public Result searById(String id) {
-		return Result.succeed(productService.searchById(id));
+		return Result.succeed(new Product().getById(id));
 	}
-	
+
 	/**
 	 * 列表查询
 	 */
 	@GetMapping("search")
 	public Result search() {
+		User user = systemUtil.getUser(httpServletRequest);
+		if (null == user){
+			throw new OtherExcetion("登录凭证已失效");
+		}
 		TablePagePars pagePars = new TablePagePars(httpServletRequest);
-		PageData<Product> pageData = productService.search(pagePars);
+		PageData<Product> pageData = productService.search(pagePars,user.getId());
 		return Result.succeed(pageData);
 	}
 	

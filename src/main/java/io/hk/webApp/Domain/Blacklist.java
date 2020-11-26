@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.framecore.Orm.ViewStore;
 
+/**
+ * 黑名单
+ */
 public class Blacklist extends ViewStore {
 
     // _id

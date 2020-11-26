@@ -54,7 +54,7 @@ public class BrandController {
      */
     @GetMapping("selectBrandById")
     public Result selectBrandById(String id) {
-        return Result.succeed(brandService.selectBrandById(id));
+        return Result.succeed(new Brand().getById(id));
     }
 
     /**
@@ -62,7 +62,7 @@ public class BrandController {
      */
     @PostMapping("modify")
     public Result modify(@RequestBody Brand brand) {
-        return brandService.modify(brand) ? Result.succeed("修改成功") : Result.failure("修改失败");
+        return brand.updateById(brand) ? Result.succeed("修改成功") : Result.failure("修改失败");
     }
 
     /**
@@ -70,7 +70,7 @@ public class BrandController {
      */
     @DeleteMapping("delete")
     public Result delete(String id) {
-        return brandService.delete(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
+        return new Brand().deleteById(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
     }
 
     /**
@@ -78,13 +78,13 @@ public class BrandController {
      */
     @PostMapping("pass")
     public Result pass(@RequestBody Brand brand) {
-        if(StringUtils.isEmpty(brand.getId())){
+        if (StringUtils.isEmpty(brand.getId())) {
             throw new OtherExcetion("请选择要审核通过的品牌");
         }
         Brand brand1 = new Brand();
         brand1.setId(brand.getId());
         brand1.setStatus("1");
-        return brandService.modify(brand1) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return brand1.updateById(brand1) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -92,17 +92,17 @@ public class BrandController {
      */
     @PostMapping("refuse")
     public Result refuse(@RequestBody Brand brand) {
-        if(StringUtils.isEmpty(brand.getId())){
+        if (StringUtils.isEmpty(brand.getId())) {
             throw new OtherExcetion("请选择要驳回的品牌");
         }
-        if(StringUtils.isEmpty(brand.getCause())){
+        if (StringUtils.isEmpty(brand.getCause())) {
             throw new OtherExcetion("请输入驳回原因");
         }
         Brand brand1 = new Brand();
         brand1.setId(brand.getId());
         brand1.setCause(brand.getCause());
         brand1.setStatus("3");
-        return brandService.modify(brand1) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return brand1.updateById(brand1) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**

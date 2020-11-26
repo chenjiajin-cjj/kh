@@ -2,7 +2,11 @@ package io.hk.webApp.Domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
+import io.hk.webApp.DataAccess.BrandSet;
+import io.hk.webApp.Tools.OtherExcetion;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 品牌管理
@@ -120,6 +124,38 @@ public class Brand extends ViewStore {
     @JsonProperty(value = "cause")
     public void setCause(String cause) {
         set("cause", cause);
+    }
+
+
+    /**
+     * 修改品牌
+     */
+    public boolean updateById(Brand brand){
+        if(StringUtils.isEmpty(brand.getId())){
+            throw new OtherExcetion("请选择要修改的品牌");
+        }
+        BrandSet brandSet = Holder.getBean(BrandSet.class);
+        return brandSet.Update(brand.getId(),brand) > 0;
+    }
+    /**
+     * 删除品牌
+     */
+    public boolean deleteById(String id){
+        if(StringUtils.isEmpty(id)){
+            throw new OtherExcetion("请选择要删除的品牌");
+        }
+        BrandSet brandSet = Holder.getBean(BrandSet.class);
+        return brandSet.Delete(id) > 0;
+    }
+    /**
+     * 根据id查询单个品牌
+     */
+    public Brand getById(String id){
+        if(StringUtils.isEmpty(id)){
+            throw new OtherExcetion("请选择要查询的品牌");
+        }
+        BrandSet brandSet = Holder.getBean(BrandSet.class);
+        return brandSet.Get(id);
     }
 
 }

@@ -13,27 +13,6 @@ public interface IBrandService {
     boolean addBrand(Brand brand);
 
     /**
-     * 根据id查询单个品牌
-     * @param id
-     * @return
-     */
-    Brand selectBrandById(String id);
-
-    /**
-     * 修改品牌
-     * @param brand
-     * @return
-     */
-    boolean modify(Brand brand);
-
-    /**
-     * 删除品牌
-     * @param id
-     * @return
-     */
-    boolean delete(String id);
-
-    /**
      * 查询品牌列表
      * @param pagePars
      * @return

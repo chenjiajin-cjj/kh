@@ -4,7 +4,12 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.framecore.Aop.Holder;
+import io.framecore.Mongodb.Set;
 import io.framecore.Orm.ViewStore;
+import io.hk.webApp.DataAccess.ProductSet;
+import io.hk.webApp.Tools.OtherExcetion;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 商品表
@@ -24,19 +29,19 @@ public class Product extends ViewStore {
 		set("_id", Id);
 	}
 
-	/* 用户Id */
-	@JsonProperty(value = "userId")
-	public String getUserId() {
-		return (String) get("userId");
+	/* 经销商id salerId */
+	@JsonProperty(value = "salerId")
+	public String getSalerId() {
+		return (String) get("salerId");
 	}
 
-	@JsonProperty(value = "userId")
-	public void setUserId(String userId) {
-		set("userId", userId);
+	@JsonProperty(value = "salerId")
+	public void setSalerId(String salerId) {
+		set("salerId", salerId);
 	}
 
 
-	/* factoryId */
+	/* 供应商id factoryId */
 	@JsonProperty(value = "factoryId")
 	public String getFactoryId() {
 		return (String) get("factoryId");
@@ -310,6 +315,47 @@ public class Product extends ViewStore {
 	@JsonProperty(value = "detail")
 	public void setDetail(String detail){
 		set("detail",detail);
+	}
+
+	/* 创建时间 createTime */
+	@JsonProperty(value = "createTime")
+	public Long getCreateTime(){
+		return (Long) get("createTime");
+	}
+	@JsonProperty(value = "createTime")
+	public void setCreateTime(Long createTime){
+		set("createTime",createTime);
+	}
+
+
+	/**
+	 * 供应商修改商品
+	 */
+	public boolean updateProduct(Product product){
+		if(StringUtils.isEmpty(product.getId())){
+			throw new OtherExcetion("请选择要修改的商品");
+		}
+		ProductSet productSet = Holder.getBean(ProductSet.class);
+		return productSet.Update(product.getId(),product) > 0;
+	}
+
+	/**
+	 * 供应商删除商品
+	 */
+	public boolean deleteById(String id){
+		if(StringUtils.isEmpty(id)){
+			throw new OtherExcetion("请选择要修改的商品");
+		}
+		ProductSet productSet = Holder.getBean(ProductSet.class);
+		return productSet.Delete(id) > 0;
+	}
+
+	/**
+	 * 查询供应商自己的商品
+	 */
+	public Product getById(String id){
+		ProductSet productSet = Holder.getBean(ProductSet.class);
+		return productSet.Get(id);
 	}
 
 }
