@@ -5,7 +5,6 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.framecore.Aop.Holder;
-import io.framecore.Mongodb.Set;
 import io.framecore.Orm.ViewStore;
 import io.hk.webApp.DataAccess.ProductSet;
 import io.hk.webApp.Tools.OtherExcetion;
@@ -29,18 +28,6 @@ public class Product extends ViewStore {
 		set("_id", Id);
 	}
 
-	/* 经销商id salerId */
-	@JsonProperty(value = "salerId")
-	public String getSalerId() {
-		return (String) get("salerId");
-	}
-
-	@JsonProperty(value = "salerId")
-	public void setSalerId(String salerId) {
-		set("salerId", salerId);
-	}
-
-
 	/* 供应商id factoryId */
 	@JsonProperty(value = "factoryId")
 	public String getFactoryId() {
@@ -52,16 +39,27 @@ public class Product extends ViewStore {
 		set("factoryId", factoryId);
 	}
 
-	/* code */
-	@JsonProperty(value = "code")
-	public String getCode() {
-		return (String) get("code");
+	/* 经销商id salerId */
+	@JsonProperty(value = "salerId")
+	public String getSalerId() {
+		return (String) get("salerId");
 	}
 
-	@JsonProperty(value = "code")
-	public void setCode(String code) {
-		set("code", code);
+	@JsonProperty(value = "salerId")
+	public void setSalerId(String salerId) {
+		set("salerId", salerId);
 	}
+
+	/* code */
+//	@JsonProperty(value = "code")
+//	public String getCode() {
+//		return (String) get("code");
+//	}
+//
+//	@JsonProperty(value = "code")
+//	public void setCode(String code) {
+//		set("code", code);
+//	}
 	
 	/* categoryCode */
 	@JsonProperty(value = "categoryCode")
@@ -142,20 +140,51 @@ public class Product extends ViewStore {
 	}
 
 	/* 商品标签 saleTagList, saleTag_{code} */
-	@JsonProperty(value = "saleTagList")
-	public Map<String,Boolean> getSaleTagList() {
-		return (Map<String,Boolean>) get("saleTagList");
+//	@JsonProperty(value = "saleTagList")
+//	public Map<String,Boolean> getSaleTagList() {
+//		return (Map<String,Boolean>) get("saleTagList");
+//	}
+//
+//	@JsonProperty(value = "saleTagList")
+//	public void setSaleTagList(Map<String,Boolean> saleTagList) {
+//		set("saleTagList", saleTagList);
+//
+//		//冗余数据
+//		for (String saleTag : saleTagList.keySet()) {
+//			set("name"+saleTag, saleTagList.get(saleTag));
+//		}
+//	}
+
+	/* 热销标签 1是2否 tagHot */
+	@JsonProperty(value = "tagHot")
+	public String getTagHot(){
+		return (String) get("tagHot");
+	}
+	@JsonProperty(value = "tagHot")
+	public void setTagHot(String tagHot){
+		set("tagHot",tagHot);
 	}
 
-	@JsonProperty(value = "saleTagList")
-	public void setSaleTagList(Map<String,Boolean> saleTagList) {
-		set("saleTagList", saleTagList);
-
-		//冗余数据
-		for (String saleTag : saleTagList.keySet()) {
-			set("name"+saleTag, saleTagList.get(saleTag));
-		}
+	/* 推荐标签 1是2否 tagRec */
+	@JsonProperty(value = "tagRec")
+	public String getTagRec(){
+		return (String) get("tagRec");
 	}
+	@JsonProperty(value = "tagRec")
+	public void setTagRec(String tagRec){
+		set("tagRec",tagRec);
+	}
+
+	/* 新品标签 1是2否 tagNew */
+	@JsonProperty(value = "tagNew")
+	public String getTagNew(){
+		return (String) get("tagNew");
+	}
+	@JsonProperty(value = "tagNew")
+	public void setTagNew(String tagNew){
+		set("tagNew",tagNew);
+	}
+
 
 	/* 京东链接 urlJd */
 	@JsonProperty(value = "urlJd")
@@ -208,7 +237,7 @@ public class Product extends ViewStore {
 	}
 
 	@JsonProperty(value = "priceBegin2")
-	public void setPrice2(Double priceBegin2) {
+	public void setPriceBegin2(Double priceBegin2) {
 		set("priceBegin2", priceBegin2);
 	}
 
@@ -265,6 +294,17 @@ public class Product extends ViewStore {
 	@JsonProperty(value = "retailPriceTaxNo")
 	public void setRetailPriceTaxNo(Double retailPriceTaxNo) {
 		set("retailPriceTaxNo", retailPriceTaxNo);
+	}
+
+	/* 税率 tax */
+	@JsonProperty(value = "tax")
+	public Double getTax() {
+		return (Double) get("tax");
+	}
+
+	@JsonProperty(value = "tax")
+	public void setTax(Double tax) {
+		set("tax", tax);
 	}
 
 	/* PPT展示图 pptImage */
@@ -327,27 +367,47 @@ public class Product extends ViewStore {
 		set("createTime",createTime);
 	}
 
+	/* 品牌名 brandName */
+	@JsonProperty(value = "brandName")
+	public String getBrandName(){
+		return (String) get("brandName");
+	}
+	@JsonProperty(value = "brandName")
+	public void setBrandName(String brandName){
+		set("brandName",brandName);
+	}
+
+	/* 分组名 categoryName */
+	@JsonProperty(value = "categoryName")
+	public String getCategoryName(){
+		return (String) get("categoryName");
+	}
+	@JsonProperty(value = "categoryName")
+	public void setCategoryName(String categoryName){
+		set("categoryName",categoryName);
+	}
+
 
 	/**
 	 * 供应商修改商品
 	 */
-	public boolean updateProduct(Product product){
-		if(StringUtils.isEmpty(product.getId())){
+	public boolean updateProduct(){
+		if(StringUtils.isEmpty(this.getId())){
 			throw new OtherExcetion("请选择要修改的商品");
 		}
 		ProductSet productSet = Holder.getBean(ProductSet.class);
-		return productSet.Update(product.getId(),product) > 0;
+		return productSet.Update(this.getId(),this) > 0;
 	}
 
 	/**
 	 * 供应商删除商品
 	 */
-	public boolean deleteById(String id){
-		if(StringUtils.isEmpty(id)){
+	public boolean deleteById(){
+		if(StringUtils.isEmpty(this.getId())){
 			throw new OtherExcetion("请选择要修改的商品");
 		}
 		ProductSet productSet = Holder.getBean(ProductSet.class);
-		return productSet.Delete(id) > 0;
+		return productSet.Delete(this.getId()) > 0;
 	}
 
 	/**

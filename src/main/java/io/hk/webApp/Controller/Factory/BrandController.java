@@ -5,9 +5,7 @@ import io.framecore.Frame.Result;
 import io.hk.webApp.Domain.Brand;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IBrandService;
-import io.hk.webApp.Tools.OtherExcetion;
-import io.hk.webApp.Tools.SystemUtil;
-import io.hk.webApp.Tools.TablePagePars;
+import io.hk.webApp.Tools.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +39,6 @@ public class BrandController {
         User user = systemUtil.getUser(httpServletRequest);
         if (null != user) {
             brand.setUserId(user.getId());
-        } else {
-            throw new OtherExcetion("登录凭证已失效");
         }
         return brandService.addBrand(brand) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
@@ -62,7 +58,13 @@ public class BrandController {
      */
     @PostMapping("modify")
     public Result modify(@RequestBody Brand brand) {
-        return brand.updateById(brand) ? Result.succeed("修改成功") : Result.failure("修改失败");
+        User user = systemUtil.getUser(httpServletRequest);
+        Brand bran1 = new Brand().getById(brand.getId());
+        if(null == bran1 || !user.getId().equals(bran1.getUserId())){
+            throw new OtherExcetion("只能修改自己发布的品牌");
+        }
+        brand.setStatus(BaseType.Consent.BASE.getCode());
+        return brand.updateById() ? Result.succeed("操作成功,等待审核") : Result.failure("操作失败");
     }
 
     /**
@@ -70,39 +72,12 @@ public class BrandController {
      */
     @DeleteMapping("delete")
     public Result delete(String id) {
-        return new Brand().deleteById(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
-    }
-
-    /**
-     * 审核通过品牌
-     */
-    @PostMapping("pass")
-    public Result pass(@RequestBody Brand brand) {
-        if (StringUtils.isEmpty(brand.getId())) {
-            throw new OtherExcetion("请选择要审核通过的品牌");
+        User user = systemUtil.getUser(httpServletRequest);
+        Brand brand = new Brand().getById(id);
+        if(null == brand || !user.getId().equals(brand.getUserId())){
+            throw new OtherExcetion("只能删除自己发布的品牌");
         }
-        Brand brand1 = new Brand();
-        brand1.setId(brand.getId());
-        brand1.setStatus("1");
-        return brand1.updateById(brand1) ? Result.succeed("操作成功") : Result.failure("操作失败");
-    }
-
-    /**
-     * 驳回品牌
-     */
-    @PostMapping("refuse")
-    public Result refuse(@RequestBody Brand brand) {
-        if (StringUtils.isEmpty(brand.getId())) {
-            throw new OtherExcetion("请选择要驳回的品牌");
-        }
-        if (StringUtils.isEmpty(brand.getCause())) {
-            throw new OtherExcetion("请输入驳回原因");
-        }
-        Brand brand1 = new Brand();
-        brand1.setId(brand.getId());
-        brand1.setCause(brand.getCause());
-        brand1.setStatus("3");
-        return brand1.updateById(brand1) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return brand.deleteById() ? Result.succeed("删除成功") : Result.failure("删除失败");
     }
 
     /**
@@ -110,8 +85,9 @@ public class BrandController {
      */
     @GetMapping("search")
     public Result search() {
+        User user = systemUtil.getUser(httpServletRequest);
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
-        PageData<Brand> pageData = brandService.search(pagePars);
+        PageData<Brand> pageData = brandService.search(pagePars,user);
         return Result.succeed(pageData);
     }
 

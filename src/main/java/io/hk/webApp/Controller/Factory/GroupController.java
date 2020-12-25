@@ -1,16 +1,19 @@
 package io.hk.webApp.Controller.Factory;
 
 import io.framecore.Frame.Result;
+import io.hk.webApp.Domain.Category;
 import io.hk.webApp.Domain.Group;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IGroupService;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
 import io.hk.webApp.vo.GroupSortVO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.Socket;
 import java.util.List;
 
 /**
@@ -37,8 +40,6 @@ public class GroupController {
         User user = systemUtil.getUser(httpServletRequest);
         if (null != user) {
             group.setFactoryId(user.getId());
-        } else {
-            throw new OtherExcetion("登录凭证已失效");
         }
         return groupService.add(group) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
@@ -51,6 +52,11 @@ public class GroupController {
      */
     @PostMapping("rename")
     public Result rename(@RequestBody Group group) {
+        User user = systemUtil.getUser(httpServletRequest);
+        Group group1 = new Group().getById(group.getId());
+        if(null == group1 || !user.getId().equals(group1.getFactoryId())){
+            throw new OtherExcetion("只能修改自己发布分组");
+        }
         return groupService.rename(group) ? Result.succeed("修改成功") : Result.failure("操作成功");
     }
 
@@ -62,6 +68,11 @@ public class GroupController {
      */
     @DeleteMapping("delete")
     public Result delete(String id) {
+        User user = systemUtil.getUser(httpServletRequest);
+        Group group1 = new Group().getById(id);
+        if(null == group1 || !user.getId().equals(group1.getFactoryId())){
+            throw new OtherExcetion("只能删除自己发布分组");
+        }
         return groupService.delete(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
     }
 
@@ -73,6 +84,7 @@ public class GroupController {
      */
     @PostMapping("sort")
     public Result sort(@RequestBody GroupSortVO vo) {
+        User user = systemUtil.getUser(httpServletRequest);
         return groupService.sort(vo) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -83,7 +95,12 @@ public class GroupController {
      */
     @PostMapping("update")
     public Result update(@RequestBody Group group) {
-        return group.updateById(group) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        User user = systemUtil.getUser(httpServletRequest);
+        Group group1 = new Group().getById(group.getId());
+        if(null == group1 || !user.getId().equals(group1.getFactoryId())){
+            throw new OtherExcetion("只能修改自己发布分组");
+        }
+        return group.updateById() ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -92,10 +109,15 @@ public class GroupController {
     @GetMapping("search")
     public Result search(){
         User user = systemUtil.getUser(httpServletRequest);
-        if (null == user){
-            throw new OtherExcetion("登录凭证已失效");
-        }
         return Result.succeed(groupService.search(user.getId()));
+    }
+
+    /**
+     * 隐藏分组
+     */
+    @PostMapping("showOrHide")
+    public Result showOrHide(@RequestBody Group group){
+        return groupService.showOrHide(group.getId()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**

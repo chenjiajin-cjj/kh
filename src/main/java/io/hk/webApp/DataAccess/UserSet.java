@@ -1,5 +1,11 @@
 package io.hk.webApp.DataAccess;
 
+import io.framecore.Tool.Md5Help;
+import io.hk.webApp.Domain.Auth;
+import io.hk.webApp.Tools.BaseType;
+import io.hk.webApp.Tools.OtherExcetion;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
@@ -12,78 +18,52 @@ import java.util.Date;
 import java.util.UUID;
 
 
-@Repository(value="UserSet")
-@Scope(value="prototype")
+@Repository(value = "UserSet")
+@Scope(value = "prototype")
 public class UserSet extends Set<User> {
 
-	public UserSet() {
-		super(_db.getDbName());
-	}
+    @Autowired
+    private AuthSet authSet;
 
-	@Override
-	public Class<User> getType() {
-		return User.class;
-	}
-	
-	
-	public Result addUser(String phone,String password,Integer identity)
-	{
-		User uer =getUserByPhone(phone);
-		if(uer!=null)
-		{
-			return Result.failure("该手机号码已经被注册。如果密码忘记，请找回密码。");
-		}
-		
-		User user =new User();
-		
-		user.setIdentity(identity);
-		user.setPhone(phone);
-		user.setPassword(password);
-		
-		String userid = this.Add(user).toString();
-		
-		if(identity==1)
-		{
-			FactorySet factorySet =Holder.getBean(FactorySet.class);
-			factorySet.addByUser(userid);
-		}
-		else
-		{
-			SalerSet salerSet =Holder.getBean(SalerSet.class);
-			salerSet.addByUser(userid);
-		}	
-		
-		
-		return Result.succeed(phone);
-	}
+    public UserSet() {
+        super(_db.getDbName());
+    }
 
-	public String login(String id)
-	{
-		String loginKey = UUID.randomUUID().toString().replace("-", "");
+    @Override
+    public Class<User> getType() {
+        return User.class;
+    }
 
-		User user = new User();
-		user.setLoginKey(loginKey);
-		user.setLastloginTime(new Date());
+    /**
+     * 用户注册
+     * @param user
+     * @return
+     */
+    public boolean register(User user){
+        User user1 = user.getUserByPhone(user.getPhone());
+        if(null != user1){
+            throw new OtherExcetion("用户已存在");
+        }
+        if(StringUtils.isEmpty(user.getType())){
+            user.setType(BaseType.UserType.SALER.getCode());
+        }
+        user.setPassword(Md5Help.toMD5(user.getPassword()));
+        user.setPhoneCode(null);
+        this.Add(user);
+        return true;
+    }
 
-		this.Update(id, user);
-
-		return loginKey;
-	}
-
-	
-	public User getUserByPhone(String phone)
-	{
-		User uer =this.Where("phone=?", phone).First();
-		
-		return uer;
-		 
-	}
-
-	public User getUserByLoginKey(String loginKey) {
-		User user =this.Where("loginKey=?", loginKey).First();
-		return user;
-
-	}
-	
-	
+    /**
+     * 忘记密码
+     * @param user
+     * @return
+     */
+    public boolean forget(User user) {
+        User user1 = user.getUserByPhone(user.getPhone());
+        if(null == user1){
+            throw new OtherExcetion("用户不存在");
+        }
+        user1.setPassword(Md5Help.toMD5(user.getPassword()));
+        return this.Update(user1.getId(),user1) > 0;
+    }
 }

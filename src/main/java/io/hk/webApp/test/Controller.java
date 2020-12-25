@@ -13,7 +13,6 @@ public class Controller {
 
     @PostMapping("add")
     public Object add(@RequestBody DoMain doMain){
-        System.out.println(doMain.get("account"));
         return db.add(doMain);
     }
 

@@ -36,18 +36,26 @@ public class ProductSet extends Set<Product> {
 	 * @return
 	 */
 	public boolean addProduct(Product pro) {
-		if(this.Where("code=?",pro.getCode()).Exist()) {
-			throw new OtherExcetion(("商品["+pro.getCode()+"]已经存在"));
+		if(this.Where("name=?",pro.getName()).Exist()) {
+			throw new OtherExcetion(("商品["+pro.getName()+"]已经存在"));
 		}
 		this.Add(pro);
 		return true;
 	}
 
-
+	/**
+	 * 列表查询
+	 * @param where
+	 * @param limitFrom
+	 * @param limitLen
+	 * @param order
+	 * @param factoryId
+	 * @return
+	 */
 	public PageData<Product> search(Hashtable<String, Object> where, int limitFrom, int limitLen, String order,String factoryId) {
 		BasicDBObject whereBson = buildWhere(where,factoryId);
 		IMongoQuery<Product> query = this.Where(whereBson);
-		query.OrderByDesc("createTime");
+		query.OrderByDesc("_ctime");
 		PageData<Product> data =new PageData<>();
 		data.rows = query.Limit(limitFrom,limitLen).ToList();
 		data.total = this.Where(whereBson).Count();
@@ -63,22 +71,42 @@ public class ProductSet extends Set<Product> {
 	private BasicDBObject buildWhere(Hashtable<String, Object> where,String factoryId){
 		BasicDBObject whereBson = new BasicDBObject();
 		BasicDBList values = new BasicDBList();
-		if(null == where){
+		if(null == where || where.size() == 0){
 			return whereBson;
 		}
 		values.add(ExpCal.Analysis("factoryId=?",factoryId));
 		for (String key : where.keySet()){
 			switch (key){
-//				case "priceBegin1":{
-//					values.add(ExpCal.Analysis("priceBegin1>=?",Double.parseDouble(where.get(key).toString())));
-//					break;
-//				}
-//				case "priceBegin2":{
-//					values.add(ExpCal.Analysis("priceBegin2<=?",Double.parseDouble(where.get(key).toString())));
-//					break;
-//				}
+				case "name":{
+					values.add(ExpCal.Analysis("name like?",where.get(key).toString()));
+					break;
+				}
+				case "categoryId":{
+					values.add(ExpCal.Analysis("categoryCode=?",where.get(key).toString()));
+					break;
+				}
 				case "brandId":{
 					values.add(ExpCal.Analysis("brandId=?",where.get(key).toString()));
+					break;
+				}
+				case "tagHot":{
+					values.add(ExpCal.Analysis("tagHot=?",where.get(key).toString()));
+					break;
+				}
+				case "tagRec":{
+					values.add(ExpCal.Analysis("tagRec=?",where.get(key).toString()));
+					break;
+				}
+				case "tagNew":{
+					values.add(ExpCal.Analysis("tagNew=?",where.get(key).toString()));
+					break;
+				}
+				case "priceBegin1":{
+					values.add(ExpCal.Analysis("priceBegin1>=?",Double.parseDouble(where.get(key).toString())));
+					break;
+				}
+				case "priceBegin2":{
+					values.add(ExpCal.Analysis("priceBegin2<=?",Double.parseDouble(where.get(key).toString())));
 					break;
 				}
 			}

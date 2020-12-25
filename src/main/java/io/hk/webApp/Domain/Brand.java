@@ -126,26 +126,37 @@ public class Brand extends ViewStore {
         set("cause", cause);
     }
 
+    /* 是否永久 1是 2否 perpetual */
+    @JsonProperty(value = "perpetual")
+    public String getPerpetual() {
+        return (String) get("perpetual");
+    }
+
+    @JsonProperty(value = "perpetual")
+    public void setPerpetual(String perpetual) {
+        set("perpetual", perpetual);
+    }
+
 
     /**
      * 修改品牌
      */
-    public boolean updateById(Brand brand){
-        if(StringUtils.isEmpty(brand.getId())){
+    public boolean updateById(){
+        if(StringUtils.isEmpty(this.getId())){
             throw new OtherExcetion("请选择要修改的品牌");
         }
         BrandSet brandSet = Holder.getBean(BrandSet.class);
-        return brandSet.Update(brand.getId(),brand) > 0;
+        return brandSet.Update(this.getId(),this) > 0;
     }
     /**
      * 删除品牌
      */
-    public boolean deleteById(String id){
-        if(StringUtils.isEmpty(id)){
+    public boolean deleteById(){
+        if(StringUtils.isEmpty(this.getId())){
             throw new OtherExcetion("请选择要删除的品牌");
         }
         BrandSet brandSet = Holder.getBean(BrandSet.class);
-        return brandSet.Delete(id) > 0;
+        return brandSet.Delete(this.getId()) > 0;
     }
     /**
      * 根据id查询单个品牌

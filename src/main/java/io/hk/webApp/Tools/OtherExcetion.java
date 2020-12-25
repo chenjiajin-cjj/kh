@@ -13,6 +13,7 @@ public class OtherExcetion extends RuntimeException {
         this.status = status;
         this.message = message;
     }
+
     public OtherExcetion(String message) {
         super(message);
         this.status = 400;
@@ -25,6 +26,7 @@ public class OtherExcetion extends RuntimeException {
         this.message = message;
         this.data = data;
     }
+
     public OtherExcetion(String message,Object data) {
         super(message);
         this.status = 400;

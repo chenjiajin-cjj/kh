@@ -76,12 +76,12 @@ public class Group extends ViewStore {
     /**
      * 修改分组
      */
-    public boolean updateById(Group group){
-        if(StringUtils.isEmpty(group.getId())){
+    public boolean updateById(){
+        if(StringUtils.isEmpty(this.getId())){
             throw new OtherExcetion("请选择要修改的分组");
         }
         GroupSet groupSet = Holder.getBean(GroupSet.class);
-        return groupSet.Update(group.getId(),group) > 0;
+        return groupSet.Update(this.getId(),this) > 0;
     }
 
     /**

@@ -23,8 +23,7 @@ public class PhoneMsgSet extends Set<PhoneMsg> {
 		return PhoneMsg.class;
 	}
 	
-	public void addValid(String phone,String validCode)
-	{
+	public void addValid(String phone,String validCode) {
 		String format="[XXX],您的验证码是：{validCode}";
 		
 		

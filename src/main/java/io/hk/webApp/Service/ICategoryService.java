@@ -31,4 +31,11 @@ public interface ICategoryService {
      * @return
      */
     boolean showOrHide(Category category);
+
+    /**
+     * 删除子分类
+     * @param id
+     * @return
+     */
+    boolean delete(String id);
 }

@@ -45,10 +45,10 @@ public class CategoryServiceImp implements ICategoryService {
             throw new OtherExcetion("不存在的分组");
         }
         List<Category> list = categorySet.Where("fatherId=?",category.getFatherId()).OrderByDesc("sort").ToList();
+        category.setFactoryId(group.getFactoryId());
         if(0 == list.size()){
             category.setSort(0);
         }else{
-            category.setFactoryId(list.get(0).getFactoryId());
             category.setSort(list.get(0).getSort()+1);
         }
         categorySet.Add(category);
@@ -68,7 +68,7 @@ public class CategoryServiceImp implements ICategoryService {
         Category category1 = new Category();
         category1.setId(category.getId());
         category1.setName(category.getName());
-        return category1.updateById(category1);
+        return category1.updateById();
     }
 
     /**
@@ -92,7 +92,10 @@ public class CategoryServiceImp implements ICategoryService {
             Category category = new Category();
             category.setId(a.getId());
             category.setSort(a.getSort());
-            count[0] += categorySet.Update(category.getId(),category);
+            boolean result = category.updateById();
+            if(result){
+                count[0] ++;
+            }
         });
         if(count[0] == list.size()){
             return true;
@@ -107,7 +110,6 @@ public class CategoryServiceImp implements ICategoryService {
      */
     @Override
     public boolean showOrHide(Category category) {
-
         String id = category.getId();
         if(StringUtils.isEmpty(id)){
             throw new OtherExcetion("请选择要隐藏的子分类");
@@ -121,7 +123,20 @@ public class CategoryServiceImp implements ICategoryService {
         }else{
             category.setStatus("1");
         }
-        return category.updateById(category);
+        return category.updateById();
+    }
+
+    /**
+     * 删除子分类
+     * @param id
+     * @return
+     */
+    @Override
+    public boolean delete(String id) {
+        if(StringUtils.isEmpty(id)){
+            throw new OtherExcetion("请选择要删除的分类");
+        }
+        return categorySet.Delete(id) > 0;
     }
 
 }

@@ -40,4 +40,11 @@ public interface IGroupService {
      * @return
      */
     PageData<Group> search(String factoryId);
+
+    /**
+     * 隐藏或显示分组
+     * @param id
+     * @return
+     */
+    boolean showOrHide(String id);
 }

@@ -2,6 +2,7 @@ package io.hk.webApp.Service;
 
 import io.framecore.Frame.PageData;
 import io.hk.webApp.Domain.Brand;
+import io.hk.webApp.Domain.User;
 import io.hk.webApp.Tools.TablePagePars;
 
 public interface IBrandService {
@@ -17,5 +18,12 @@ public interface IBrandService {
      * @param pagePars
      * @return
      */
-    PageData<Brand> search(TablePagePars pagePars);
+    PageData<Brand> search(TablePagePars pagePars, User user);
+
+    /**
+     * 修改品牌
+     * @param brand
+     * @return
+     */
+    boolean update(Brand brand);
 }

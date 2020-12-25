@@ -113,23 +113,23 @@ public class Category extends ViewStore {
 	/**
 	 * 修改子分组
 	 */
-	public boolean updateById(Category category){
-		if(StringUtils.isEmpty(category.getId())){
+	public boolean updateById(){
+		if(StringUtils.isEmpty(this.getId())){
 			throw new OtherExcetion("请选择要修改的子分组");
 		}
 		CategorySet categorySet = Holder.getBean(CategorySet.class);
-		return categorySet.Update(category.getId(),category) > 0;
+		return categorySet.Update(this.getId(),this) > 0;
 	}
 
 	/**
 	 * 删除子分组
 	 */
-	public boolean deleteById(String id){
-		if(StringUtils.isEmpty(id)){
+	public boolean deleteById(){
+		if(StringUtils.isEmpty(this.getId())){
 			throw new OtherExcetion("请选择要删除的子分组");
 		}
 		CategorySet categorySet = Holder.getBean(CategorySet.class);
-		return categorySet.Delete(id) > 0;
+		return categorySet.Delete(this.getId()) > 0;
 	}
 
 	/**
