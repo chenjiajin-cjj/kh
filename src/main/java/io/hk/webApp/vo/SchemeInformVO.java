@@ -1,23 +1,23 @@
 package io.hk.webApp.vo;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class SchemeInformVO extends BaseVO{
 
-    private String [] productIds;
+    private List<SchemeInfornVO> list;
 
     @Override
     public String toString() {
         return "SchemeInformVO{" +
-                "productIds=" + Arrays.toString(productIds) +
+                "list=" + list +
                 '}';
     }
 
-    public String[] getProductIds() {
-        return productIds;
+    public List<SchemeInfornVO> getList() {
+        return list;
     }
 
-    public void setProductIds(String[] productIds) {
-        this.productIds = productIds;
+    public void setList(List<SchemeInfornVO> list) {
+        this.list = list;
     }
 }

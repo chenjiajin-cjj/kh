@@ -20,8 +20,8 @@ public class BaseController {
     @GetMapping("qiniuToken")
     public Result get7niuToken() {
         String cacheKey = "chat:img.7niu.token";
-        String token = CacheHelp.get(cacheKey);
-        if (token == null) {
+//        String token = CacheHelp.get(cacheKey);
+//        if (token == null) {
             String accessKey = null;
             String secretKey = null;
             String bucket = null;
@@ -34,9 +34,9 @@ public class BaseController {
                 e.printStackTrace();
             }
             Auth auth = Auth.create(accessKey, secretKey);
-            token = auth.uploadToken(bucket, null, 2592000, null);
-            CacheHelp.set(cacheKey, token, 1592000);
-        }
+            String token = auth.uploadToken(bucket, null, 2592000, null);
+//            CacheHelp.set(cacheKey, token, 1592000);
+//        }
         return Result.succeed(token);
 
     }

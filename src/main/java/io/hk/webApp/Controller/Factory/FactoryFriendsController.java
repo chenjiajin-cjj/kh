@@ -7,15 +7,13 @@ import io.hk.webApp.Domain.FriendApply;
 import io.hk.webApp.Domain.Friends;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IFriendsService;
+import io.hk.webApp.Service.ISchemeService;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
 import io.hk.webApp.Tools.TablePagePars;
 import io.hk.webApp.dto.FactoryFriendsDTO;
-import io.hk.webApp.vo.CustomerBlackListVO;
-import io.hk.webApp.vo.CustomerBatchDeleteVO;
-import io.hk.webApp.vo.ProductShareVO;
-import io.hk.webApp.vo.UpdatePriceVO;
+import io.hk.webApp.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +37,9 @@ public class FactoryFriendsController {
     @Autowired
     private SystemUtil systemUtil;
 
+    @Autowired
+    private ISchemeService iSchemeService;
+
     /**
      * 展示客户审核列表
      *
@@ -61,7 +62,7 @@ public class FactoryFriendsController {
             throw new OtherExcetion("请选择要通过的客户");
         }
         if (StringUtils.isAnyEmpty(user.getTel(), user.getName(), user.getCompanyName(), user.getProvince(), user.getAddr())) {
-            throw new OtherExcetion("完善用户资料后方可进行操作");
+            throw new OtherExcetion(-10,"完善用户资料后方可进行操作");
         }
         return friendsService.check(friends, BaseType.Consent.PASS.getCode(), user) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
@@ -197,8 +198,35 @@ public class FactoryFriendsController {
      * 修改已发送报价的商品的价格
      */
     @PostMapping("updatePrice")
-    public Result updatePrice(@RequestBody UpdatePriceVO vo){
+    public Result updatePrice(@RequestBody UpdatePriceVO vo) {
         User user = systemUtil.getUser(httpServletRequest);
-        return friendsService.updatePrice(vo,user) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return friendsService.updatePrice(vo, user) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 批量转移子账号
+     */
+    @PostMapping("transfer")
+    public Result transfer(@RequestBody TransferVO vo) {
+        User user = systemUtil.getUser(httpServletRequest);
+        return friendsService.transfer(vo, user) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 查询客户审核的条数
+     */
+    @GetMapping("getALlCount")
+    public Result getAllCount(){
+        User user = systemUtil.getUser(httpServletRequest);
+        return Result.succeed(friendsService.getAllCount(user));
+    }
+
+    /**
+     * 查询指定经销商的所有方案列表
+     */
+    @GetMapping("searchSalerScheme")
+    public Result searchSalerScheme(String salerId){
+        TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        return Result.succeed(iSchemeService.search(salerId,pagePars));
     }
 }

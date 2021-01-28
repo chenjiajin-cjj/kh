@@ -137,6 +137,62 @@ public class Brand extends ViewStore {
         set("perpetual", perpetual);
     }
 
+    /* 绑定系统品牌id systemId */
+    @JsonProperty(value = "systemId")
+    public String getSystemId() {
+        return (String) get("systemId");
+    }
+
+    @JsonProperty(value = "systemId")
+    public void setSystemId(String systemId) {
+        set("systemId", systemId);
+    }
+
+    /* 用户名 userName */
+    @JsonProperty(value = "userName")
+    public String getUserName() {
+        return (String) get("userName");
+    }
+
+    @JsonProperty(value = "userName")
+    public void setUserName(String userName) {
+        set("userName", userName);
+    }
+
+
+    /* 反馈详情 feedback */
+    @JsonProperty(value = "feedback")
+    public String getFeedback() {
+        return (String) get("feedback");
+    }
+
+    @JsonProperty(value = "feedback")
+    public void setFeedback(String feedback) {
+        set("feedback", feedback);
+    }
+
+    /* 授权资料 authorization */
+    @JsonProperty(value = "authorization")
+    public String getAuthorization() {
+        return (String) get("authorization");
+    }
+
+    @JsonProperty(value = "authorization")
+    public void setAuthorization(String authorization) {
+        set("authorization", authorization);
+    }
+
+    /* 是否平台品牌 yesOrNo */
+    @JsonProperty(value = "yesOrNo")
+    public String getYesOrNo() {
+        return (String) get("yesOrNo");
+    }
+
+    @JsonProperty(value = "yesOrNo")
+    public void setYesOrNo(String yesOrNo) {
+        set("yesOrNo", yesOrNo);
+    }
+
 
     /**
      * 修改品牌

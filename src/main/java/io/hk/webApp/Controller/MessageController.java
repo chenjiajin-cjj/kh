@@ -25,23 +25,25 @@ public class MessageController {
 
     /**
      * 初始化信息列表
+     *
      * @param title
      * @return
      */
     @GetMapping("init")
-    public Result init(String title){
+    public Result init(String title) {
         User user = systemUtil.getUser(httpServletRequest);
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
-        return Result.succeed(messageService.init(title,user.getId(),pagePars));
+        return Result.succeed(messageService.init(title, user.getId(), pagePars));
     }
 
     /**
      * 标记为已读
+     *
      * @param id
      * @return
      */
     @GetMapping("read")
-    public Result read(String id){
+    public Result read(String id) {
         return messageService.read(id) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -49,8 +51,34 @@ public class MessageController {
      * 查询这个用户还有多少条未读
      */
     @GetMapping("check")
-    public Result check(){
+    public Result check() {
         User user = systemUtil.getUser(httpServletRequest);
         return Result.succeed(messageService.check(user.getId()));
+    }
+
+    /**
+     * 查询消息中心标签
+     */
+    @GetMapping("searchTag")
+    public Result searchTag() {
+        User user = systemUtil.getUser(httpServletRequest);
+        return Result.succeed(messageService.searchTag(user));
+    }
+
+    /**
+     * 查询头部未读消息数量
+     */
+    @GetMapping("checkHeadMessage")
+    public Result checkHeadMessage() {
+        User user = systemUtil.getUser(httpServletRequest);
+        return Result.succeed(messageService.checkHeadMessage(user));
+    }
+
+    /**
+     * 删除消息
+     */
+    @DeleteMapping("delete")
+    public Result delete(String _id) {
+        return messageService.delete(_id) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 }

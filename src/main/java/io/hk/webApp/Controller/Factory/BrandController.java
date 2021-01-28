@@ -40,7 +40,13 @@ public class BrandController {
         if (null != user) {
             brand.setUserId(user.getId());
         }
-        return brandService.addBrand(brand) ? Result.succeed("添加成功") : Result.failure("添加失败");
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
+        if(StringUtils.isEmpty(user.getCompanyName())){
+            throw new OtherExcetion(-10,"完善用户资料后方可进行操作");
+        }
+        return brandService.addBrand(brand,user) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
 
     /**
@@ -58,13 +64,17 @@ public class BrandController {
      */
     @PostMapping("modify")
     public Result modify(@RequestBody Brand brand) {
-        User user = systemUtil.getUser(httpServletRequest);
-        Brand bran1 = new Brand().getById(brand.getId());
-        if(null == bran1 || !user.getId().equals(bran1.getUserId())){
-            throw new OtherExcetion("只能修改自己发布的品牌");
-        }
-        brand.setStatus(BaseType.Consent.BASE.getCode());
-        return brand.updateById() ? Result.succeed("操作成功,等待审核") : Result.failure("操作失败");
+//        User user = systemUtil.getUser(httpServletRequest);
+//        Brand bran1 = new Brand().getById(brand.getId());
+//        if(null == bran1 || !user.getId().equals(bran1.getUserId())){
+//            throw new OtherExcetion("只能修改自己发布的品牌");
+//        }
+//        if (StringUtils.isNotEmpty(user.getFatherId())) {
+//            throw new OtherExcetion("子账号无权操作");
+//        }
+//        brand.setStatus(BaseType.Consent.BASE.getCode());
+//        return brand.updateById() ? Result.succeed("操作成功,等待审核") : Result.failure("操作失败");
+        return Result.succeed("操作成功");
     }
 
     /**
@@ -76,6 +86,9 @@ public class BrandController {
         Brand brand = new Brand().getById(id);
         if(null == brand || !user.getId().equals(brand.getUserId())){
             throw new OtherExcetion("只能删除自己发布的品牌");
+        }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
         }
         return brand.deleteById() ? Result.succeed("删除成功") : Result.failure("删除失败");
     }

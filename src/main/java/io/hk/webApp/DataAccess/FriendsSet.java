@@ -60,14 +60,15 @@ public class FriendsSet extends Set<Friends> {
     private BasicDBObject buildWhere(Hashtable<String, Object> where, String userId){
         BasicDBObject whereBson = new BasicDBObject();
         BasicDBList values = new BasicDBList();
+        values.add(ExpCal.Analysis("userId=?",userId));
         if(null == where || where.size() == 0){
+            whereBson.append("$and",values);
             return whereBson;
         }
-        values.add(ExpCal.Analysis("userId=?",userId));
+
         for (String key : where.keySet()){
             switch (key){
                 case "kernel":{
-                    System.out.println(where.get(key));
                     values.add(ExpCal.Analysis("kernel=?",where.get(key).toString()));
                     break;
                 }

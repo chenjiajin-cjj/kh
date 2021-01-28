@@ -10,6 +10,7 @@ import io.hk.webApp.vo.FactorySchemeUpdateMoneyVO;
 public interface IFactorySchemeService {
     /**
      * 展示方案列表
+     *
      * @param userId
      * @param pagePars
      * @return
@@ -18,13 +19,15 @@ public interface IFactorySchemeService {
 
     /**
      * 删除方案
+     *
      * @param id
      * @return
      */
-    boolean delete(String id,String userId);
+    boolean delete(String id, String userId);
 
     /**
      * 提报
+     *
      * @param vo
      * @return
      */
@@ -32,13 +35,15 @@ public interface IFactorySchemeService {
 
     /**
      * 查询方案详情
+     *
      * @param factorySchemeId
      * @return
      */
-    Object getDetails(String factorySchemeId);
+    Object getDetails(String factorySchemeId, TablePagePars pagePars);
 
     /**
      * 修改商品价格
+     *
      * @param vo
      * @return
      */

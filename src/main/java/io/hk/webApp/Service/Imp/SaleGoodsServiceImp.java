@@ -1,21 +1,20 @@
 package io.hk.webApp.Service.Imp;
 
 import io.framecore.Frame.PageData;
+import io.framecore.Mongodb.ExpCal;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Service.IProductService;
 import io.hk.webApp.Service.ISaleGoodsService;
 import io.hk.webApp.Tools.*;
 import io.hk.webApp.dto.ShareProduceDTO;
-import io.hk.webApp.vo.ProductSharePriceVO;
-import io.hk.webApp.vo.SaleGoodsOnlineOrNoVO;
-import io.hk.webApp.vo.SaleGoodsUpdateProductVO;
-import io.hk.webApp.vo.ShareProductAddVO;
+import io.hk.webApp.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 @Service
@@ -42,6 +41,18 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     @Autowired
     private MessagesSet messagesSet;
 
+    @Autowired
+    private ChooseSet chooseSet;
+
+    @Autowired
+    private UserSet userSet;
+
+    @Autowired
+    private AuthSet authSet;
+
+    @Autowired
+    private ClassifySet classifySet;
+
     /**
      * 经销商获得由供应商分享过来的商品
      *
@@ -65,15 +76,27 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
         }
         for (ProductSharePriceVO priceVO : vo.getList()) {
             Product product = productSet.Get(priceVO.getProductId());
-            SaleGoods info = saleGoodsSet.Where("productId=?", priceVO.getProductId()).First();
+            SaleGoods info = saleGoodsSet.Where("(productId=?)and(salerId=?)", priceVO.getProductId(), salerId).First();
             if (null != product && null == info) {
                 SaleGoods saleGoods = new SaleGoods();
                 saleGoods.setSalerId(salerId);
+                saleGoods.setFactoryId(shareProduces.getFactoryId());
 //                saleGoods.setProduct(BsonUtil.toDocument(product));  TODO 问题集锦提到经销商获得的商品的信息应该是同步供应商商品 故只存id不存实体
                 saleGoods.setProductId(priceVO.getProductId());
                 saleGoods.setType("2");
-                saleGoods.setRecommend(false);
+                saleGoods.setRecommend("2");
+                saleGoods.setShield(BaseType.Status.YES.getCode());
+                saleGoods.setStatus(BaseType.Status.YES.getCode());
                 saleGoods.setPrice(priceVO.getNewMoney());
+                saleGoods.setPriceTax(priceVO.getNewMoneyTax());
+                saleGoods.setBrandId(product.getBrandId());
+                saleGoods.setProductGroup(product.getProductGroup());
+                saleGoods.setTagHot(product.getTagHot());
+                saleGoods.setTagNew(product.getTagNew());
+                saleGoods.setTagRec(product.getTagRec());
+                saleGoods.setCategoryCode(product.getCategoryCode());
+                saleGoods.setName(product.getName());
+                saleGoods.setClassifyId(product.getClassifyId());
                 saleGoodsSet.Add(saleGoods);
             } else {
                 {
@@ -86,6 +109,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
                     messages.setReceiveId(salerId);
                     messages.setContent("商品：" + product.getName() + "已存在，故不添加");
                     messages.setData(null);
+                    messages.setImg(Arrays.asList(product.getImage1()));
                     messagesSet.Add(messages);
                 }
             }
@@ -114,26 +138,46 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     @Override
     public boolean addProduct(Product product) {
         if (StringUtils.isAnyEmpty(product.get("name").toString(),
-                product.getBrandId(),
-                product.getModel(),
+//                product.getBrandId(),
+//                product.getModel(),
                 product.getBaseDetail(),
                 product.getSellingPoint(),
-                product.getDetail())) {
+                product.getDetail(),
+                product.getClassifyId())) {
             throw new OtherExcetion("请完善必填项");
         }
 
-        if (NumberUtils.isDoubleMinus(product.getPriceBegin1(),
-                product.getPriceEnd1(),
-                product.getPriceBegin2(),
-                product.getPriceEnd2(),
-                product.getSupplyPriceTax(),
-                product.getSupplyPriceTaxNo(),
-                product.getRetailPriceTax(),
-                product.getRetailPriceTaxNo())) {
-            throw new OtherExcetion("价格输入有误");
+        if (null == product.getSupplyPriceTax() ||
+                null == product.getSupplyPriceTaxNo() ||
+                null == product.getRetailPriceTax() ||
+                null == product.getRetailPriceTaxNo() ||
+                NumberUtils.isDoubleMinus(product.getSupplyPriceTaxNo(), product.getSupplyPriceTax(), product.getRetailPriceTax(), product.getRetailPriceTaxNo())) {
+            throw new OtherExcetion("价格有误");
+        }
+
+        if (null != product.getPriceBegin1() && product.getPriceBegin1() > product.getRetailPriceTax()) {
+            throw new OtherExcetion("预设价格1不含税不能比零售价不含税高");
+        }
+        if (null != product.getPriceEnd1() && product.getPriceEnd1() > product.getRetailPriceTaxNo()) {
+            throw new OtherExcetion("预设价格1含税不能比零售价含税高");
+        }
+
+        if (null != product.getPriceBegin2() && product.getPriceBegin2() > product.getRetailPriceTax()) {
+            throw new OtherExcetion("预设价格2不含税不能比零售价不含税高");
+        }
+        if (null != product.getPriceEnd2() && product.getPriceEnd2() > product.getRetailPriceTaxNo()) {
+            throw new OtherExcetion("预设价格2含税不能比零售价含税高");
         }
         product.setCreateTime(System.currentTimeMillis());
-        Object id = productSet.Add(product);
+        product.setIllegal(BaseType.Status.YES.getCode());
+        product.setShield(BaseType.Status.YES.getCode());
+        product.setStatus(BaseType.Status.YES.getCode());
+        Object id = null;
+        try {
+            id = productSet.Add(product);
+        } catch (Exception e) {
+            throw new OtherExcetion("商品名重复");
+        }
 
         SaleGoods saleGoods = new SaleGoods();
         saleGoods.setSalerId(product.getSalerId());
@@ -141,7 +185,19 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
         saleGoods.setProductId(id.toString());
         saleGoods.setType("1");
         saleGoods.setStatus(product.getStatus());
-        saleGoods.setRecommend(false);
+        saleGoods.setRecommend("2");
+        saleGoods.setShield(BaseType.Status.YES.getCode());
+        saleGoods.setPrice(0.0);
+        saleGoods.setPriceTax(0.0);
+        //做冗余 检索商品用
+        saleGoods.setTagHot(StringUtils.isEmpty(product.getTagHot()) ? "2" : product.getTagHot());
+        saleGoods.setTagNew(StringUtils.isEmpty(product.getTagNew()) ? "2" : product.getTagNew());
+        saleGoods.setTagRec(StringUtils.isEmpty(product.getTagRec()) ? "2" : product.getTagRec());
+        saleGoods.setBrandId(StringUtils.isEmpty(product.getBrandId()) ? "" : product.getBrandId());
+        saleGoods.setProductGroup(StringUtils.isEmpty(product.getProductGroup()) ? "" : product.getProductGroup());
+        saleGoods.setCategoryCode(StringUtils.isEmpty(product.getCategoryCode()) ? "" : product.getCategoryCode());
+        saleGoods.setName(StringUtils.isEmpty(product.getName()) ? "" : product.getName());
+        saleGoods.setClassifyId(StringUtils.isEmpty(product.getClassifyId()) ? "" : product.getClassifyId());
         saleGoodsSet.Add(saleGoods);
         return true;
     }
@@ -150,29 +206,12 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
      * 查询商品
      *
      * @param pagePars
-     * @param salerId
      * @param type
      * @return
      */
     @Override
-    public PageData<SaleGoods> search(TablePagePars pagePars, String salerId, String type) {
-        PageData<SaleGoods> pageData = saleGoodsSet.search(pagePars.Pars, pagePars.PageSize, pagePars.PageIndex, pagePars.Order, salerId, type);
-        pageData.rows.forEach((a) -> {
-            Product product = productSet.Get(a.getProductId());
-//            Category category = new Category().getById(product.getCategoryCode());
-//            String categoryName = "无";
-//            if(null != category && StringUtils.isNotEmpty(category.getName())){
-//                categoryName = category.getName();
-//            }
-//            Brand brand = new Brand().getById(product.getBrandId());
-//            String brandName = "无";
-//            if(null != brand && StringUtils.isNotEmpty(brand.getName())){
-//                brandName = brand.getName();
-//            }
-//            product.setCategoryName(categoryName);
-//            product.setBrandName(brandName);
-            a.setProduct(BsonUtil.toDocument(product));
-        });
+    public PageData<SaleGoods> search(TablePagePars pagePars, User user, String type) {
+        PageData<SaleGoods> pageData = saleGoodsSet.search(pagePars.Pars, pagePars.PageSize, pagePars.PageIndex, pagePars.Order, user, type);
         return pageData;
     }
 
@@ -239,8 +278,46 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
      * @return
      */
     @Override
-    public SaleGoods getById(String id) {
-        return saleGoodsSet.Get(id);
+    public SaleGoods getById(String id, User user) {
+        if (StringUtils.isEmpty(id)) {
+            throw new OtherExcetion("请选择要查询的商品");
+        }
+        SaleGoods saleGoods = saleGoodsSet.Get(id);
+        Product product = productSet.Get(saleGoods.getProductId());
+        if (null == product) {
+            throw new OtherExcetion("不存在的商品");
+        }
+        Brand brand = brandSet.Get(product.getBrandId());
+        Classify classify = classifySet.Get(product.getClassifyId());
+        if (null != brand && StringUtils.isNotEmpty(brand.getName())) {
+            product.setBrandName(brand.getName());
+        } else {
+            product.setBrandName("无");
+        }
+        if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
+            product.setClassifyName(classify.getName());
+        } else {
+            product.setClassifyName("无");
+        }
+
+        if (StringUtils.isNotEmpty(user.getCompanyName())) {
+            product.setCname(user.getCompanyName());
+        } else {
+            product.setCname("无");
+        }
+        if (StringUtils.isNotEmpty(user.getName())) {
+            product.setPname(user.getName());
+        } else {
+            product.setPname("无");
+        }
+        if (StringUtils.isNotEmpty(user.getTel())) {
+            product.setTel(user.getTel());
+        } else {
+            product.setTel("无");
+        }
+        product.setAuthentication(BaseType.Status.YES.getCode().equals(user.getAuth()));
+        saleGoods.setProduct(BsonUtil.toDocument(product));
+        return saleGoods;
     }
 
     /**
@@ -255,10 +332,10 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
         if (null == saleGoods) {
             throw new OtherExcetion("不存在的商品");
         }
-        if (saleGoods.getRecommend()) {
-            saleGoods.setRecommend(false);
+        if ("1".equals(saleGoods.getRecommend())) {
+            saleGoods.setRecommend("2");
         } else {
-            saleGoods.setRecommend(true);
+            saleGoods.setRecommend("1");
         }
         return saleGoods.updateById();
     }
@@ -368,5 +445,124 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
         });
         shareProduces.setProducts(list);
         return shareProduces;
+    }
+
+    /**
+     * 添加商品到选品库
+     *
+     * @return
+     */
+    @Override
+    public boolean addToChoose(AddToChooseVO vo, User user) {
+        vo.getList().forEach((a) -> {
+            a.setSalerId(user.getId());
+            if (StringUtils.isEmpty(a.getSaleGoodsId())) {
+                throw new OtherExcetion("请选择商品");
+            }
+            SaleGoods saleGoods = saleGoodsSet.Get(a.getSaleGoodsId());
+            if (null == saleGoods) {
+                throw new OtherExcetion("不存在的商品");
+            }
+            if (!user.getId().equals(saleGoods.getSalerId())) {
+                throw new OtherExcetion("不能添加不是你本人的商品");
+            }
+            long count = chooseSet.Where("salerId=?", a.getSalerId()).Count();
+            if (count > 200) {
+                throw new OtherExcetion("选品库已超最大数量限制了");
+            }
+            Product product = productSet.Get(saleGoods.getProductId());
+            if (null == product) {
+                throw new OtherExcetion("不存在的商品");
+            }
+            if (StringUtils.isNotEmpty(product.getImage1())) {
+                a.setProductImg(product.getImage1());
+            }
+            chooseSet.Add(a);
+        });
+
+        return true;
+    }
+
+    /**
+     * 查询选品库
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Object searchChoose(String id) {
+        List<Choose> list = chooseSet.Where("salerId=?", id).OrderByDesc("_ctime").ToList();
+        Map<String, Object> map = new HashMap<>();
+        map.put("rows", list);
+        map.put("total", list.size());
+        return map;
+    }
+
+    /**
+     * 删除选品库的商品
+     *
+     * @param user
+     * @return
+     */
+    @Override
+    public boolean deleteChoose(DeleteChooseVO vo, User user) {
+        vo.getChooseIds().forEach((a) -> {
+            Choose choose = chooseSet.Get(a);
+            if (null == choose) {
+                throw new OtherExcetion("不存在的商品");
+            }
+            if (!user.getId().equals(choose.getSalerId())) {
+                throw new OtherExcetion("不能删除被人的商品");
+            }
+            chooseSet.Delete(a);
+        });
+        return true;
+    }
+
+    /**
+     * 查询合作厂商的分享给经销商的商品
+     *
+     * @param factoryId
+     * @param user
+     * @param pagePars
+     * @return
+     */
+    @Override
+    public Object searchProducts(String factoryId, User user, TablePagePars pagePars) {
+        List<SaleGoods> list = saleGoodsSet.Where("(salerId=?)and(factoryId=?)", user.getId(), factoryId).Limit(pagePars.PageSize, pagePars.PageIndex).ToList();
+        long count = saleGoodsSet.Where("(salerId=?)and(factoryId=?)", user.getId(), factoryId).Count();
+        List<SaleGoods> saleGoods = new ArrayList<>();
+        list.forEach((a) -> {
+            Product product = productSet.Get(a.getProductId());
+            a.setProduct(BsonUtil.toDocument(product));
+            saleGoods.add(a);
+        });
+        if (saleGoods.size() < pagePars.PageIndex) {
+            pagePars.PageIndex = saleGoods.size();
+        }
+        PageData<SaleGoods> pageData = new PageData<>();
+        pageData.total = count;
+        pageData.rows = list;
+        return pageData;
+    }
+
+    /**
+     * 删除指定经销商中指定供应商的所有商品
+     *
+     * @param salerId
+     * @param factoryId
+     * @return
+     */
+    @Override
+    public boolean removeSalerProductFromFactory(String salerId, String factoryId) {
+        List<SaleGoods> saleGoods = saleGoodsSet.Where("(salerId=?)and(factoryId=?)", salerId, factoryId).ToList();
+        int[] res = {0};
+        saleGoods.forEach((a) -> {
+            if (null != a && StringUtils.isNotEmpty(a.getId())) {
+                saleGoodsSet.Delete(a.getId());
+                res[0]++;
+            }
+        });
+        return res[0] == saleGoods.size();
     }
 }

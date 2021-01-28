@@ -9,6 +9,7 @@ import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -162,6 +163,33 @@ public class Scheme extends ViewStore {
         set("status", status);
     }
 
+
+    @JsonProperty(value = "_ctime")
+    public Date getCreatetime() {
+        return (Date) get("_ctime");
+    }
+
+    @JsonProperty(value = "number")
+    public Long getNumber() {
+        return (Long) get("number");
+    }
+
+    @JsonProperty(value = "number")
+    public void setNumber(Long number) {
+        set("number", number);
+    }
+
+
+    /* 创建时间 */
+    @JsonProperty(value = "time")
+    public Long getTime() {
+        return (Long) get("time");
+    }
+
+    @JsonProperty(value = "time")
+    public void setTime(Long time) {
+        set("time", time);
+    }
 
     /**
      * 修改方案

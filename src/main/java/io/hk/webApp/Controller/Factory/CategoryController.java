@@ -36,6 +36,10 @@ public class CategoryController {
      */
     @PostMapping("add")
     public Result add(@RequestBody Category category) {
+        User user = systemUtil.getUser(httpServletRequest);
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return categoryService.add(category) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
 
@@ -60,6 +64,9 @@ public class CategoryController {
         if(StringUtils.isAnyEmpty(category.getId(),category.getName())){
             throw new OtherExcetion("请完善必填项");
         }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         category1.setName(category.getName());
         return category1.updateById() ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
@@ -69,6 +76,10 @@ public class CategoryController {
      */
     @PostMapping("sort")
     public Result sort(@RequestBody CategorySortVO vo) {
+        User user = systemUtil.getUser(httpServletRequest);
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return categoryService.sort(vo) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -82,6 +93,9 @@ public class CategoryController {
         if (null == category1 || !user.getId().equals(category1.getFactoryId())) {
             throw new OtherExcetion("只能修改自己发布的分类");
         }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return categoryService.showOrHide(category) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -94,6 +108,9 @@ public class CategoryController {
         Category category1 = new Category().getById(id);
         if (null == category1 || !user.getId().equals(category1.getFactoryId())) {
             throw new OtherExcetion("只能修改自己发布的分类");
+        }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
         }
         return category1.deleteById() ? Result.succeed("操作成功") : Result.failure("操作失败");
     }

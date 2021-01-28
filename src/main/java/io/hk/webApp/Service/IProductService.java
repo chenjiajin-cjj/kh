@@ -24,13 +24,13 @@ public interface IProductService {
      * @param pagePars
      * @return
      */
-    PageData<Product> search(TablePagePars pagePars,String factoryId);
+    PageData<Product> search(TablePagePars pagePars,User user);
 
     /**
      * 查询首页列表的分组
      * @return
      */
-    List<Category> searchGroups(String factoryId);
+    Object searchGroups(String factoryId);
 
     /**
      * 列表查询商品页的品牌
@@ -44,5 +44,33 @@ public interface IProductService {
      * @param product
      * @return
      */
-    boolean update(Product product);
+    boolean update(Product product,User user);
+
+    /**
+     * 屏蔽/取消屏蔽商品
+     * @param productId
+     * @return
+     */
+    boolean shield(String productId);
+
+    /**
+     * 根据id查询单个商品
+     * @param id
+     * @return
+     */
+    Object getOne(String id,User user);
+
+    /**
+     * 删除商品
+     * @param id
+     * @return
+     */
+    boolean delete(String id);
+
+    /**
+     * 查询后台商品
+     * @param pagePars
+     * @return
+     */
+    Object searchBackGroupProducts(TablePagePars pagePars);
 }

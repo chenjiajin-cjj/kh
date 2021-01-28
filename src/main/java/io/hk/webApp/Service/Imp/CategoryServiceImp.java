@@ -34,9 +34,6 @@ public class CategoryServiceImp implements ICategoryService {
         if(StringUtils.isEmpty(category.getName())){
             throw new OtherExcetion("请输入子分类名");
         }
-        if(category.getNumber() < 1){
-            throw new OtherExcetion("请输入正确的商品数量");
-        }
         if(StringUtils.isEmpty(category.getFatherId())){
             throw new OtherExcetion("你想在哪个分组下添加分类？");
         }
@@ -51,6 +48,7 @@ public class CategoryServiceImp implements ICategoryService {
         }else{
             category.setSort(list.get(0).getSort()+1);
         }
+        category.setNumber((long)0);
         categorySet.Add(category);
         return true;
     }

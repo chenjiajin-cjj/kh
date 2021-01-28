@@ -3,8 +3,10 @@ package io.hk.webApp.Service.Imp;
 import io.framecore.Frame.PageData;
 import io.hk.webApp.DataAccess.CategorySet;
 import io.hk.webApp.DataAccess.GroupSet;
+import io.hk.webApp.DataAccess.ProductSet;
 import io.hk.webApp.Domain.Category;
 import io.hk.webApp.Domain.Group;
+import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IGroupService;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
@@ -25,6 +27,9 @@ public class GroupServiceImp implements IGroupService {
     @Autowired
     private CategorySet categorySet;
 
+    @Autowired
+    private ProductSet productSet;
+
     /**
      * 添加分组
      *
@@ -33,18 +38,16 @@ public class GroupServiceImp implements IGroupService {
      */
     @Override
     public boolean add(Group group) {
-        long count = groupSet.Where("factoryId=?", group.getFactoryId()).Count();
-        if (2 <= count) {
-            throw new OtherExcetion("已超过创立分组的最大限制");
-        }
+        Group info = groupSet.Where("factoryId=?", group.getFactoryId()).OrderByDesc("sort").First();
         if (StringUtils.isAnyEmpty(group.getName())) {
             throw new OtherExcetion("请输入分组名");
         }
-        if (0 == count) {
-            group.setSort(0);
-        } else {
+        if(null == info){
             group.setSort(1);
+        }else{
+            group.setSort((null == info.getSort() ? 0 : info.getSort()) + 1);
         }
+        group.setNumber((long)0);
         groupSet.Add(group);
         return true;
     }
@@ -131,12 +134,23 @@ public class GroupServiceImp implements IGroupService {
      * @return
      */
     @Override
-    public PageData<Group> search(String factoryId) {
+    public PageData<Group> search(User user) {
+        String factoryId = null;
+        if(StringUtils.isEmpty(user.getFatherId())){
+            factoryId = user.getId();
+        }else{
+            factoryId = user.getFatherId();
+        }
         PageData<Group> pageData = new PageData<>();
         List<Group> list = groupSet.Where("factoryId=?", factoryId).OrderBy("sort").ToList();
         long count = groupSet.Where("factoryId=?", factoryId).Count();
         list.forEach((a) -> {
             List<Category> sonList = categorySet.Where("fatherId=?", a.getId()).OrderBy("sort").ToList();
+            sonList.forEach((b)->{
+                long number = productSet.Where("categoryCode=?",b.getId()).Count();
+                b.setNumber(number);
+                a.setNumber((null == a.getNumber() ? 0 : a.getNumber()) + b.getNumber());
+            });
             a.setSonList(sonList);
         });
         pageData.rows = list;

@@ -1,5 +1,6 @@
 package io.hk.webApp.Controller.Saler;
 
+import com.alibaba.fastjson.JSONObject;
 import io.framecore.Frame.Result;
 import io.hk.webApp.Domain.Scheme;
 import io.hk.webApp.Domain.User;
@@ -39,6 +40,7 @@ public class SchemeController {
         if (null != user) {
             scheme.setSalerId(user.getId());
         }
+        scheme.setTime(System.currentTimeMillis());
         return schemeService.add(scheme) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -71,7 +73,7 @@ public class SchemeController {
     }
 
     /**
-     * 结束方案/删除方案
+     * 删除方案
      */
     @DeleteMapping("delete")
     public Result delete(String id) {
@@ -105,7 +107,9 @@ public class SchemeController {
      */
     @GetMapping("getDetails")
     public Result getDetails(String schemeId) {
-        return Result.succeed(schemeService.getDetails(schemeId));
+        User user = systemUtil.getUser(httpServletRequest);
+        TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        return Result.succeed(schemeService.getDetails(schemeId, user, pagePars, "1"));
     }
 
     /**
@@ -123,7 +127,8 @@ public class SchemeController {
      */
     @GetMapping("getFactorySchemeDetails")
     public Result getFactorySchemeDetails(String factorySchemeId) {
-        return Result.succeed(schemeService.getFactorySchemeDetails(factorySchemeId));
+        TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        return Result.succeed(schemeService.getFactorySchemeDetails(factorySchemeId, pagePars));
     }
 
     /**
@@ -149,5 +154,56 @@ public class SchemeController {
     public Result inform(@RequestBody SchemeInformVO vo) {
         User user = systemUtil.getUser(httpServletRequest);
         return schemeService.inform(vo, user) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 结束方案
+     */
+    @PostMapping("over")
+    public Result over(@RequestBody String id) {
+        String ids = JSONObject.parseObject(id).getString("id");
+        return schemeService.over(ids) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 批量删除方案里面的商品
+     */
+    @PostMapping("deleteBatch")
+    public Result deleteBatch(@RequestBody SchemeDeleteBatchListVO vo) {
+        User user = systemUtil.getUser(httpServletRequest);
+        return schemeService.deleteBatch(vo) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 生成ppt
+     */
+    @PostMapping("createPPT")
+    public Result createPPT(@RequestBody PptVO vo) {
+        User user = systemUtil.getUser(httpServletRequest);
+        String name = schemeService.createPPT(vo, user);
+        return null == name ? Result.failure("1") : Result.succeed(name);
+    }
+    /**
+     *批量生成售价
+     */
+    @PostMapping("batchUpdateMoneyForAll")
+    public Result batchUpdateMoneyForAll(@RequestBody SalerUpdateMoneyListVO vo){
+        if(vo.getList().size() == 0){
+            throw new OtherExcetion("最少选择一件");
+        }
+        int count = 0;
+        for (int i = 0; i < vo.getList().size(); i++) {
+            boolean res = schemeService.updateMoneyForAll(vo.getList().get(i));
+            if(res){
+                count ++;
+            }
+        }
+        if(count == vo.getList().size()){
+            return Result.succeed("操作成功");
+        }else if(count == 0){
+            return Result.failure("操作失败");
+        }else{
+            return Result.succeed("部分修改失败");
+        }
     }
 }

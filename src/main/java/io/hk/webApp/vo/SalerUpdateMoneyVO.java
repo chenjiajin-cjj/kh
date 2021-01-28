@@ -8,7 +8,9 @@ public class SalerUpdateMoneyVO {
 
     private String productId;
 
-    private double salerNewMoney;
+    private double salerNewMoneyTax;
+
+    private double salerNewMoneyTaxNo;
 
     @Override
     public String toString() {
@@ -16,7 +18,8 @@ public class SalerUpdateMoneyVO {
                 "schemeId='" + schemeId + '\'' +
                 ", factorySchemeId='" + factorySchemeId + '\'' +
                 ", productId='" + productId + '\'' +
-                ", salerNewMoney=" + salerNewMoney +
+                ", salerNewMoneyTax=" + salerNewMoneyTax +
+                ", salerNewMoneyTaxNo=" + salerNewMoneyTaxNo +
                 '}';
     }
 
@@ -44,11 +47,19 @@ public class SalerUpdateMoneyVO {
         this.productId = productId;
     }
 
-    public double getSalerNewMoney() {
-        return salerNewMoney;
+    public double getSalerNewMoneyTax() {
+        return salerNewMoneyTax;
     }
 
-    public void setSalerNewMoney(double salerNewMoney) {
-        this.salerNewMoney = salerNewMoney;
+    public void setSalerNewMoneyTax(double salerNewMoneyTax) {
+        this.salerNewMoneyTax = salerNewMoneyTax;
+    }
+
+    public double getSalerNewMoneyTaxNo() {
+        return salerNewMoneyTaxNo;
+    }
+
+    public void setSalerNewMoneyTaxNo(double salerNewMoneyTaxNo) {
+        this.salerNewMoneyTaxNo = salerNewMoneyTaxNo;
     }
 }

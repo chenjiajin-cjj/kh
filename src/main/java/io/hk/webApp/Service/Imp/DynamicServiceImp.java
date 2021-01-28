@@ -119,12 +119,15 @@ public class DynamicServiceImp implements IDynamicService {
         }
         //查合作
         else if ("1".equals(type)) {
-            List<Friends> friends = friendsSet.Where("userId=?", salerId).ToList();
+            List<Friends> friends = friendsSet.Where("userId=?", salerId).Limit(pagePars.PageSize, pagePars.PageIndex).ToList();
             List<Dynamic> finalList1 = new ArrayList<>();
             friends.forEach((a) -> {
-                finalList1.addAll(dynamicSet.Where("factoryId=?", a.getFriendId()).ToList());
+                finalList1.addAll(dynamicSet.Where("factoryId=?", a.getFriendId()).Limit(pagePars.PageSize, pagePars.PageIndex).ToList());
                 count[0] += dynamicSet.Where("factoryId=?", a.getId()).Count();
             });
+            if (finalList1.size() < pagePars.PageIndex) {
+                pagePars.PageIndex = finalList1.size();
+            }
             list = finalList1.subList(pagePars.PageSize, pagePars.PageIndex += pagePars.PageSize);
             list.forEach((a) -> {
                 DynamicDTO dynamicDTO = new DynamicDTO();
@@ -148,20 +151,22 @@ public class DynamicServiceImp implements IDynamicService {
         }
         //查未合作
         else {
-            List<Friends> friends = friendsSet.Where("userId=?", salerId).ToList();
-            List<User> users = userSet.Where("type=?", BaseType.UserType.FACTORY.getCode()).ToList();
-            users.forEach((a) -> {
-                friends.forEach((b) -> {
-                    if (b.getFriendId().equals(a.getId())) {
-                        users.remove(a);
-                    }
-                });
-            });
+            List<Friends> friends = friendsSet.Where("userId=?", salerId).Limit(pagePars.PageSize, pagePars.PageIndex).ToList();
+            List<User> users = userSet.Where("type=?", BaseType.UserType.FACTORY.getCode()).Limit(pagePars.PageSize, pagePars.PageIndex).ToList();
+            List<User> notFriends = new ArrayList<>(users);
+            users.forEach((a)-> friends.forEach((b)->{
+                if(a.getId().equals(b.getFriendId())){
+                    notFriends.remove(a);
+                }
+            }));
             List<Dynamic> finalList = new ArrayList<>();
-            users.forEach((a) -> {
-                finalList.addAll(dynamicSet.Where("factoryId=?", a.getId()).ToList());
+            notFriends.forEach((a) -> {
+                finalList.addAll(dynamicSet.Where("factoryId=?", a.getId()).Limit(pagePars.PageSize, pagePars.PageIndex).ToList());
                 count[0] += dynamicSet.Where("factoryId=?", a.getId()).Count();
             });
+            if (finalList.size() < pagePars.PageIndex) {
+                pagePars.PageIndex = finalList.size();
+            }
             list = finalList.subList(pagePars.PageSize, pagePars.PageIndex += pagePars.PageSize);
             list.forEach((a) -> {
                 DynamicDTO dynamicDTO = new DynamicDTO();

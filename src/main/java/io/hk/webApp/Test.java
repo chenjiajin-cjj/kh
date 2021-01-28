@@ -7,18 +7,19 @@ import io.framecore.Tool.HttpHelp;
 import io.framecore.Tool.Md5Help;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
+import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.BsonUtil;
+import org.bson.Document;
 
 import java.util.*;
 
 public class Test {
 	
 	public static void main(String[] args)  {
-		ProductSet productSet = Holder.getBean(ProductSet.class);
-		List<Product> products = productSet.ToList();
-		products.forEach((a)->{
-			a.setTax(10.0);
-			a.updateProduct();
+		ProductSet product = Holder.getBean(ProductSet.class);
+		product.ToList().forEach((a)->{
+			a.setIllegal("1");
+			product.Update(a.getId(),a);
 		});
 	}
 	
@@ -40,6 +41,7 @@ public class Test {
 
 			product.setImage1(images[new Random().nextInt(4)]);
 			product.setImage2(images[new Random().nextInt(4)]);
+			product.setShield(BaseType.Status.YES.getCode());
 			product.setTagHot("1");
 			product.setTagRec("2");
 			product.setUrlJd("京东外链");
@@ -125,7 +127,22 @@ public class Test {
 		set.Add(factory);
 		
 	}
-	
+
+	public static void createScheme(){
+		Scheme scheme = new Scheme();
+		SchemeSet schemeSet = Holder.getBean(SchemeSet.class);
+		scheme.setName("测试");
+		Product product = new Product();
+		SaleGoods saleGoods = new SaleGoods();
+		product.setName("名");
+		saleGoods.setName("二名");
+		saleGoods.setProduct(BsonUtil.toDocument(product));
+		saleGoods.setProductBean(product);
+		List<Document> list = new ArrayList();
+		list.add(BsonUtil.toDocument(saleGoods));
+		scheme.setSalesGoods(list);
+		schemeSet.Add(scheme);
+	}
  
 	
 	//创建分类

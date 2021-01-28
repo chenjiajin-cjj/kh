@@ -65,7 +65,7 @@ public interface ISchemeService {
      * @param schemeId
      * @return
      */
-    Object getDetails(String schemeId);
+    Object getDetails(String schemeId,User user,TablePagePars pagePars,String type);
 
     /**
      * 查询供应商分享过来的方案列表
@@ -80,7 +80,7 @@ public interface ISchemeService {
      * @param factorySchemeId
      * @return
      */
-    Object getFactorySchemeDetails(String factorySchemeId);
+    Object getFactorySchemeDetails(String factorySchemeId,TablePagePars pagePars);
 
     /**
      * 删除商品提报管理的方案
@@ -102,4 +102,25 @@ public interface ISchemeService {
      * @return
      */
     boolean inform(SchemeInformVO vo, User user);
+
+    /**
+     * 结束方案
+     * @param id
+     * @return
+     */
+    boolean over(String id);
+
+    /**
+     * 批量删除方案里面的商品
+     * @param vo
+     * @return
+     */
+    boolean deleteBatch(SchemeDeleteBatchListVO vo);
+
+    /**
+     * 生成ppt
+     * @param vo
+     * @return
+     */
+    String createPPT(PptVO vo,User user);
 }

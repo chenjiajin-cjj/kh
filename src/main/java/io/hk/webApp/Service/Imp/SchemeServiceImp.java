@@ -1,6 +1,5 @@
 package io.hk.webApp.Service.Imp;
 
-import com.alibaba.fastjson.JSONObject;
 import io.framecore.Frame.PageData;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
@@ -8,7 +7,9 @@ import io.hk.webApp.Service.IFactorySchemeService;
 import io.hk.webApp.Service.ISchemeService;
 import io.hk.webApp.Tools.*;
 import io.hk.webApp.dto.*;
+import io.hk.webApp.test.PPTUtil;
 import io.hk.webApp.vo.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 
@@ -46,6 +49,12 @@ public class SchemeServiceImp implements ISchemeService {
     @Autowired
     private IFactorySchemeService iFactorySchemeService;
 
+    @Autowired
+    private BrandSet brandSet;
+
+    @Autowired
+    private ChooseSet chooseSet;
+
     private final Logger LOG = LoggerFactory.getLogger(SchemeServiceImp.class);
 
     /**
@@ -56,13 +65,15 @@ public class SchemeServiceImp implements ISchemeService {
      */
     @Override
     public boolean add(Scheme scheme) {
-        if (StringUtils.isAnyEmpty(scheme.getName(), scheme.getSynopsis())) {
+        if (StringUtils.isAnyEmpty(scheme.getName())) {
             throw new OtherExcetion("请完善必填项");
         }
         if (null == scheme.getValidity()) {
             throw new OtherExcetion("请输入正确的有效期");
         }
         scheme.setStatus(BaseType.SchemeStatus.UNDERWAY.getCode());
+        scheme.setFactoryIds(new ArrayList<>());
+        scheme.setSalesGoods(new ArrayList<>());
         schemeSet.Add(scheme);
         return true;
     }
@@ -77,6 +88,16 @@ public class SchemeServiceImp implements ISchemeService {
     @Override
     public PageData<Scheme> search(String salerId, TablePagePars pagePars) {
         PageData<Scheme> pageData = schemeSet.search(pagePars.PageSize, pagePars.PageIndex, pagePars.Pars, salerId);
+        pageData.rows.forEach((a) -> {
+            List<FactoryScheme> list = factorySchemeSet.Where("schemeId=?", a.getId()).ToList();
+            long[] count = {0};
+            list.forEach((b) -> {
+                if (null != b.getFactoryProductIds()) {
+                    count[0] += b.getFactoryProductIds().size();
+                }
+            });
+            a.setNumber(count[0] + a.getSalesGoods().size());
+        });
         return pageData;
     }
 
@@ -110,18 +131,63 @@ public class SchemeServiceImp implements ISchemeService {
         if (null == list || list.size() == 0) {
             list = new ArrayList<>();
         }
-        // TODO 问题集锦提到 放到方案中的商品不会因为供应商的更改而更改
-        for (String saleGoodId : vo.getSaleGoodIds()) {
-            if (StringUtils.isNotEmpty(saleGoodId)) {
-                SaleGoods saleGoods = saleGoodsSet.Get(saleGoodId);
-                if (null != saleGoods && userId.equals(saleGoods.getSalerId())) {
-                    Product product = productSet.Get(saleGoods.getProductId());
-                    saleGoods.setProduct(BsonUtil.toDocument(product));
-                    FactorySchemeSaleGoodDTO dto = new FactorySchemeSaleGoodDTO();
-                    dto.setSaleGoods(saleGoods);
-                    dto.setSaleGoodId(saleGoods.getId());
-                    list.add(BsonUtil.toDocument(dto));
+        //查询经销商选品库的所有商品
+        List<Choose> chooses = chooseSet.Where("salerId=?", userId).ToList();
+        if (chooses.size() == 0) {
+            return true;
+        }
+        //查询到经销商方案所有有关的productId
+        List<String> productIds = new ArrayList<>();
+        list.forEach((a) -> {
+            FactorySchemeSaleGoodDTO dto = BsonUtil.toBean(a, FactorySchemeSaleGoodDTO.class);
+            productIds.add(dto.getSaleGoods().getProductId());
+        });
+        //获取分享到经销商那边的所有商品的id
+        List<FactoryScheme> factorySchemes = factorySchemeSet.Where("schemeId=?", vo.getSchemeId()).ToList();
+        factorySchemes.forEach((a) -> {
+            List<Document> documents;
+            try {
+                documents = a.getFactoryProductIds();
+            } catch (Exception e) {
+                documents = new ArrayList<>();
+            }
+            if (null == documents || documents.size() == 0) {
+                documents = new ArrayList<>();
+            }
+            documents.forEach((b) -> {
+                FactorySchemeProductDTO dto = BsonUtil.toBean(b, FactorySchemeProductDTO.class);
+                productIds.add(dto.getProductIds());
+            });
+        });
+        //去除重复商品
+        List<Choose> chooses1 = new ArrayList<>(chooses);
+        for (Choose value : chooses1) {
+            for (String productId : productIds) {
+                SaleGoods saleGoods = saleGoodsSet.Get(value.getSaleGoodsId());
+                if (null != saleGoods && userId.equals(saleGoods.getSalerId()) && saleGoods.getProductId().equals(productId)) {
+                    chooses.remove(value);
+                    chooseSet.Delete(value.getId());
+                    break;
                 }
+            }
+        }
+        // TODO 问题集锦提到 放到方案中的商品不会因为供应商的更改而更改
+        for (Choose choose : chooses) {
+            SaleGoods saleGoods = saleGoodsSet.Get(choose.getSaleGoodsId());
+            if (null != saleGoods && userId.equals(saleGoods.getSalerId())) {
+                Product product = productSet.Get(saleGoods.getProductId());
+                if (null == product) {
+                    continue;
+                }
+                saleGoods.setProductBean(product);
+                saleGoods.setProduct(BsonUtil.toDocument(product));
+                FactorySchemeSaleGoodDTO dto = new FactorySchemeSaleGoodDTO();
+                dto.setSaleGoods(saleGoods);
+                dto.setSaleGoodId(saleGoods.getId());
+                dto.setSalerNewMoneyTax(saleGoods.getPrice());
+                dto.setSalerNewMoneyTaxNo(saleGoods.getPriceTax());
+                list.add(BsonUtil.toDocument(dto));
+                chooseSet.Delete(choose.getId());
             }
         }
         scheme.setSalesGoods(list);
@@ -153,6 +219,11 @@ public class SchemeServiceImp implements ISchemeService {
         Scheme scheme1 = new Scheme();
         scheme1.setId(scheme.getId());
         scheme1.setName(scheme.getName());
+        List<FactoryScheme> list = factorySchemeSet.Where("schemeId=?", scheme.getId()).ToList();
+        list.forEach((a) -> {
+            a.setName(scheme.getName());
+            a.updateById();
+        });
         return scheme1.updateById();
     }
 
@@ -188,8 +259,22 @@ public class SchemeServiceImp implements ISchemeService {
         friendsList.forEach((a) -> {
             SchemeFriendsDTO dto = new SchemeFriendsDTO();
             dto.setFriends(a);
+            User friend = userSet.Get(a.getFriendId());
+            if (null != friend) {
+                String addr = (null == friend.getProvince() ? friend.getProvince() : "") + (null != friend.getAddr() ? friend.getAddr() : "");
+                dto.setAddr(addr);
+                dto.setCname(null != friend.getCompanyName() ? friend.getCompanyName() : "");
+                dto.setName(null != friend.getName() ? friend.getName() : "");
+                dto.setRealPhone(null != friend.getRealPhone() ? friend.getRealPhone() : "");
+                dto.setTel(null != friend.getTel() ? friend.getTel() : "");
+                dto.setImg(null != friend.getImg() ? friend.getImg() : "");
+            }
             if (null != scheme.getFactoryIds() && scheme.getFactoryIds().size() > 0) {
-                scheme.getFactoryIds().forEach(b -> dto.setFlag(a.getFriendId().equals(b)));
+                scheme.getFactoryIds().forEach((b) -> {
+                    if (a.getFriendId().equals(b)) {
+                        dto.setFlag(true);
+                    }
+                });
             }
             list.add(dto);
         });
@@ -209,7 +294,7 @@ public class SchemeServiceImp implements ISchemeService {
             throw new OtherExcetion("请勿重复分享此方案");
         }
         if (StringUtils.isEmpty(user.getCompanyName())) {
-            throw new OtherExcetion("完善个人资料后方可操作");
+            throw new OtherExcetion(-10, "完善个人资料后方可操作");
         }
         factoryScheme = new FactoryScheme();
         Scheme scheme = schemeSet.Get(vo.getSchemeId());
@@ -224,16 +309,16 @@ public class SchemeServiceImp implements ISchemeService {
             scheme.updateById();
             throw new OtherExcetion("此方案已失效");
         }
-        if (null == scheme.getSalesGoods() || scheme.getSalesGoods().size() == 0) {
-            throw new OtherExcetion("请添加至少一件商品才能邀请报价");
-        }
+        factoryScheme.setName(scheme.getName());
         factoryScheme.setFactoryId(vo.getFactoryId());
         factoryScheme.setSalerId(user.getId());
         factoryScheme.setSchemeId(scheme.getId());
         factoryScheme.setSalerName(user.getCompanyName());
         factoryScheme.setValidity(scheme.getValidity());
+        factoryScheme.setNumber("0");
         factoryScheme.setUpdateTime(System.currentTimeMillis());
         factoryScheme.setStatus(BaseType.Status.NO.getCode());
+        factoryScheme.setScheme(BaseType.Status.NO.getCode());
         factorySchemeSet.Add(factoryScheme);
         List<String> list = scheme.getFactoryIds();
         if (null == list || list.size() == 0) {
@@ -252,9 +337,6 @@ public class SchemeServiceImp implements ISchemeService {
             messages.setReceiveId(vo.getFactoryId());
             messages.setContent(user.getCompanyName() + "：邀请你报价");
             messages.setData(scheme.getId());
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("code", "0");
-            jsonObject.put("msg", "邀请报价");
             messagesSet.Add(messages);
         }
         return scheme.updateById();
@@ -267,7 +349,7 @@ public class SchemeServiceImp implements ISchemeService {
      * @return
      */
     @Override
-    public Object getDetails(String schemeId) {
+    public FactorySchemeDTO getDetails(String schemeId, User user, TablePagePars pagePars, String type) {
         if (StringUtils.isEmpty(schemeId)) {
             throw new OtherExcetion("请选择方案");
         }
@@ -275,25 +357,39 @@ public class SchemeServiceImp implements ISchemeService {
         if (null == scheme) {
             throw new OtherExcetion("不存在的方案");
         }
-//        if (!BaseType.SchemeStatus.UNDERWAY.getCode().equals(scheme.getStatus())) {
-//            throw new OtherExcetion("此方案已结束");
-//        }
         List<FactoryScheme> factorySchemes = factorySchemeSet.Where("schemeId=?", schemeId).ToList();
         FactorySchemeDTO factorySchemeDTO = new FactorySchemeDTO();
-//        factorySchemeDTO.setFactorySchemeId(schemeId);
-        factorySchemeDTO.setCreateTime(scheme.getValidity());
+        factorySchemeDTO.setSchemeId(schemeId);
+        factorySchemeDTO.setCreateTime(scheme.getCreatetime().getTime());
         factorySchemeDTO.setDetails(scheme.getSynopsis());
+        factorySchemeDTO.setValidity(scheme.getValidity());
         factorySchemeDTO.setName(scheme.getName());
-        List<ProductDTO> productList = new ArrayList<>();
-        scheme.getSalesGoods().forEach((a) -> {
-            FactorySchemeSaleGoodDTO dto = BsonUtil.toBean(a, FactorySchemeSaleGoodDTO.class);
-            ProductDTO productDTO = new ProductDTO();
-            Product product = productSet.Get(dto.getSaleGoods().getProductId());
-            productDTO.setProduct(product);
-            productDTO.setSalerNewMoney(dto.getSalerNewMoney());
-            productList.add(productDTO);
-            factorySchemeDTO.setNumbers(factorySchemeDTO.getNumbers() + 1);
-        });
+        final List<ProductDTO> productList = new ArrayList<>();
+        if (null != scheme.getSalesGoods() && scheme.getSalesGoods().size() > 0) {
+            //添加经销商的商品
+            scheme.getSalesGoods().forEach((a) -> {
+                FactorySchemeSaleGoodDTO dto = BsonUtil.toBean(a, FactorySchemeSaleGoodDTO.class);
+                ProductDTO productDTO = new ProductDTO();
+//                Product product = productSet.Get(dto.getSaleGoods().getProductId()); //动态获取
+                Product product = dto.getSaleGoods().getProductBean();//拿实体
+                System.out.println(product);
+                if (null != product) {
+                    productDTO.setProduct(product);
+                    productDTO.setFactoryNewMoneyTax(product.getSupplyPriceTax());
+                    productDTO.setFactoryNewMoneyTaxNo(product.getSupplyPriceTaxNo());
+                } else {
+                    productDTO.setProduct(new Product());
+                    productDTO.setFactoryNewMoneyTax(0);
+                    productDTO.setFactoryNewMoneyTaxNo(0);
+                }
+                productDTO.setSalerNewMoneyTax(dto.getSalerNewMoneyTax());
+                productDTO.setSalerNewMoneyTaxNo(dto.getSalerNewMoneyTaxNo());
+                productDTO.setCname(StringUtils.isEmpty(user.getCompanyName()) ? "" : user.getCompanyName());
+                productDTO.setType(BaseType.UserType.SALER.getCode());
+                productList.add(productDTO);
+                factorySchemeDTO.setNumbers(factorySchemeDTO.getNumbers() + 1);
+            });
+        }
         //添加供应商的商品
         factorySchemes.forEach((a) -> {
             if (null == a.getFactoryProductIds() || a.getFactoryProductIds().size() == 0) {
@@ -305,14 +401,30 @@ public class SchemeServiceImp implements ISchemeService {
                 Product product = dto.getProduct(); //拿实体
 //                Product product = productSet.Get(dto.getProductIds()); //动态获取
                 ProductDTO productDTO = new ProductDTO();
-                productDTO.setFactoryNewMoney(dto.getFactoryNewMoney());
-                productDTO.setSalerNewMoney(dto.getSalerNewMoney());
+                productDTO.setFactoryNewMoneyTax(dto.getFactoryNewMoneyTax());
+                productDTO.setFactoryNewMoneyTaxNo(dto.getFactoryNewMoneyTaxNo());
+                productDTO.setSalerNewMoneyTax(dto.getSalerNewMoneyTax());
+                productDTO.setSalerNewMoneyTaxNo(dto.getSalerNewMoneyTaxNo());
                 productDTO.setProduct(product);
                 productDTO.setFactorySchemeId(a.getId());
+                productDTO.setType(BaseType.UserType.FACTORY.getCode());
+                User factory = userSet.Get(product.getFactoryId());
+                if (null != factory) {
+                    productDTO.setCname(StringUtils.isEmpty(factory.getCompanyName()) ? "" : factory.getCompanyName());
+                }
                 productList.add(productDTO);
             });
         });
-        factorySchemeDTO.setProductList(productList);
+        factorySchemeDTO.setTotal(productList.size());
+        if ("0".equals(type)) {
+            factorySchemeDTO.setProductList(productList);
+        } else {
+            if (productList.size() < pagePars.PageIndex) {
+                pagePars.PageIndex = productList.size();
+            }
+            factorySchemeDTO.setProductList(productList.subList(pagePars.PageSize, pagePars.PageIndex += pagePars.PageSize));
+        }
+        factorySchemeDTO.setStatus(scheme.getStatus());
         return factorySchemeDTO;
     }
 
@@ -326,6 +438,7 @@ public class SchemeServiceImp implements ISchemeService {
     @Override
     public Object searchFactorySchemes(String id, TablePagePars pagePars) {
         List<FactoryScheme> factorySchemes = factorySchemeSet.Where("(salerId=?)and(status=?)", id, BaseType.Status.YES.getCode()).Limit(pagePars.PageSize, pagePars.PageIndex).OrderByDesc("_uptime").ToList();
+        long count = factorySchemeSet.Where("(salerId=?)and(status=?)", id, BaseType.Status.YES.getCode()).Count();
         User saler = userSet.Get(id);
         List<SalerFactorySchemeDTO> list = new ArrayList<>();
         factorySchemes.forEach((a) -> {
@@ -346,7 +459,10 @@ public class SchemeServiceImp implements ISchemeService {
             dto.setImgList(imgList);
             list.add(dto);
         });
-        return list;
+        PageData<SalerFactorySchemeDTO> pageData = new PageData<>();
+        pageData.rows = list;
+        pageData.total = count;
+        return pageData;
     }
 
     /**
@@ -356,8 +472,8 @@ public class SchemeServiceImp implements ISchemeService {
      * @return
      */
     @Override
-    public Object getFactorySchemeDetails(String factorySchemeId) {
-        return iFactorySchemeService.getDetails(factorySchemeId);
+    public Object getFactorySchemeDetails(String factorySchemeId, TablePagePars pagePars) {
+        return iFactorySchemeService.getDetails(factorySchemeId, pagePars);
     }
 
     /**
@@ -390,7 +506,7 @@ public class SchemeServiceImp implements ISchemeService {
         if (StringUtils.isAnyEmpty(vo.getProductId())) {
             throw new OtherExcetion("请完善必填项");
         }
-        if (vo.getSalerNewMoney() <= 0) {
+        if (vo.getSalerNewMoneyTax() <= 0 || vo.getSalerNewMoneyTaxNo() <= 0) {
             throw new OtherExcetion("请输入正确的价格");
         }
         if (StringUtils.isEmpty(vo.getFactorySchemeId())) {
@@ -405,7 +521,8 @@ public class SchemeServiceImp implements ISchemeService {
             for (int i = 0; i < list.size(); i++) {
                 FactorySchemeProductDTO dto = BsonUtil.toBean(list.get(i), FactorySchemeProductDTO.class);
                 if (dto.getProductIds().equals(vo.getProductId())) {
-                    dto.setSalerNewMoney(vo.getSalerNewMoney());
+                    dto.setSalerNewMoneyTax(vo.getSalerNewMoneyTax());
+                    dto.setSalerNewMoneyTaxNo(vo.getSalerNewMoneyTaxNo());
                     list.set(i, BsonUtil.toDocument(dto));
                     break;
                 }
@@ -425,7 +542,8 @@ public class SchemeServiceImp implements ISchemeService {
             documents.forEach((a) -> {
                 FactorySchemeSaleGoodDTO dto = BsonUtil.toBean(a, FactorySchemeSaleGoodDTO.class);
                 if (vo.getProductId().equals(dto.getSaleGoods().getProductId())) {
-                    dto.setSalerNewMoney(vo.getSalerNewMoney());
+                    dto.setSalerNewMoneyTax(vo.getSalerNewMoneyTax());
+                    dto.setSalerNewMoneyTaxNo(vo.getSalerNewMoneyTaxNo());
                 }
                 list1.add(BsonUtil.toDocument(dto));
             });
@@ -448,7 +566,7 @@ public class SchemeServiceImp implements ISchemeService {
         if (StringUtils.isEmpty(vo.getId())) {
             throw new OtherExcetion("请选择方案");
         }
-        if (vo.getProductIds().length == 0) {
+        if (vo.getList().size() == 0) {
             throw new OtherExcetion("请选择商品");
         }
         Scheme scheme = schemeSet.Get(vo.getId());
@@ -458,29 +576,37 @@ public class SchemeServiceImp implements ISchemeService {
         if (!BaseType.SchemeStatus.UNDERWAY.getCode().equals(scheme.getStatus())) {
             throw new OtherExcetion("该方案已结束");
         }
-        List<Map<String,Object>> list = new ArrayList<>();
+        List<Map<String, Object>> list = new ArrayList<>();
         Set<String> set = new HashSet<>();
-        for (int i = 0; i < vo.getProductIds().length; i++) {
-            Product product = productSet.Get(vo.getProductIds()[i]);
+        for (int i = 0; i < vo.getList().size(); i++) {
+            SchemeInfornVO inform = vo.getList().get(i);
+            if (StringUtils.isEmpty(inform.getProductId())) {
+                continue;
+            }
+            Product product = productSet.Get(inform.getProductId());
             if (null == product || StringUtils.isEmpty(product.getFactoryId())) {
                 continue;
             }
             set.add(product.getFactoryId());
         }
-        for (int i = 0; i < vo.getProductIds().length; i++) {
-            Product product = productSet.Get(vo.getProductIds()[i]);
+        for (int i = 0; i < vo.getList().size(); i++) {
+            SchemeInfornVO inform = vo.getList().get(i);
+            if (StringUtils.isEmpty(inform.getProductId())) {
+                continue;
+            }
+            Product product = productSet.Get(inform.getProductId());
             for (String factoryId : set) {
-                Map<String,Object> map = new HashMap<>();
+                Map<String, Object> map = new HashMap<>();
                 List<String> list1 = new ArrayList<>();
-                map.put("userId",factoryId);
-                if(factoryId.equals(product.getFactoryId())){
-                    list1.add(vo.getProductIds()[i]);
+                map.put("userId", factoryId);
+                if (factoryId.equals(product.getFactoryId())) {
+                    list1.add(inform.getProductId());
                 }
-                map.put("list",list1);
+                map.put("list", list1);
                 list.add(map);
             }
         }
-        list.forEach((a)->{
+        list.forEach((a) -> {
             {
                 Messages messages = new Messages();
                 messages.setTitle(BaseType.Message.SUBMISSION.getCode());
@@ -489,13 +615,214 @@ public class SchemeServiceImp implements ISchemeService {
                 messages.setUserId(user.getId());
                 messages.setSource(user.getCompanyName());
                 messages.setReceiveId(a.get("userId").toString());
-                messages.setContent(user.getCompanyName() + "邀请您提报商品");
+                messages.setContent(user.getCompanyName() + "邀请您发送报价");
                 messages.setData(a.get("list"));
                 messagesSet.Add(messages);
             }
         });
+
+        List<FactorySchemeSaleGoodDTO> infos = new ArrayList<>();
+        Set<String> factoryIds = new HashSet<>();
+        //获得经销商方案的经销商商品
+        scheme.getSalesGoods().forEach((a) -> {
+            FactorySchemeSaleGoodDTO dto = BsonUtil.toBean(a, FactorySchemeSaleGoodDTO.class);
+            if (StringUtils.isNotEmpty(dto.getSaleGoods().getFactoryId())) {
+                factoryIds.add(dto.getSaleGoods().getFactoryId());
+            }
+            infos.add(dto);
+        });
+        //如果经销商方案有某个供应商的商品 但是没有邀请他报过价 此时也应该提报到拥有这个商品的供应商
+        factoryIds.forEach((a) -> {
+            FactoryScheme factoryScheme = factorySchemeSet.Where("(schemeId=?)and(factoryId=?)", scheme.getId(), a).First();
+            if (null == factoryScheme) {
+                SchemeQuotationVO vo1 = new SchemeQuotationVO();
+                vo1.setFactoryId(a);
+                vo1.setSchemeId(scheme.getId());
+                this.quotation(vo1, user);
+            }
+        });
+
+        //获取需要给供应商方案添加经销商方案共有商品的供应商方案id去重
+        List<FactoryScheme> factorySchemeIdsSet = factorySchemeSet.Where("schemeId=?", scheme.getId()).ToList();
+        //遍历供应商方案
+        factorySchemeIdsSet.forEach((a) -> {
+            FactoryScheme factoryScheme = factorySchemeSet.Get(a.getId());
+            if (BaseType.Status.NO.getCode().equals(factoryScheme.getScheme())) {
+                //获得供应商方案的所有供应商的商品
+                List<Document> documents;
+                try {
+                    documents = factoryScheme.getFactoryProductIds();
+                } catch (Exception e) {
+                    documents = new ArrayList<>();
+                }
+                if (null == documents || documents.size() == 0) {
+                    documents = new ArrayList<>();
+                }
+                List<Document> list1 = new ArrayList<>(documents);
+                List<Product> products = productSet.Where("factoryId=?", factoryScheme.getFactoryId()).ToList();
+                //遍历供应商的所有商品
+                products.forEach((b) -> {
+                    //遍历经销商方案商品
+                    infos.forEach((c) -> {
+                        if (c.getSaleGoods().getProductId().equals(b.getId())) {
+                            FactorySchemeProductDTO factorySchemeProductDTO = new FactorySchemeProductDTO();
+                            factorySchemeProductDTO.setProduct(productSet.Get(c.getSaleGoods().getProductId()));
+                            factorySchemeProductDTO.setProductIds(b.getId());
+                            factorySchemeProductDTO.setFactoryNewMoneyTaxNo(0);
+                            factorySchemeProductDTO.setFactoryNewMoneyTax(0);
+                            factorySchemeProductDTO.setSalerNewMoneyTax(c.getSalerNewMoneyTax());
+                            factorySchemeProductDTO.setSalerNewMoneyTaxNo(c.getSalerNewMoneyTaxNo());
+                            list1.add(BsonUtil.toDocument(factorySchemeProductDTO));
+                        }
+                    });
+                });
+                factoryScheme.setFactoryProductIds(list1);
+                factoryScheme.setScheme(BaseType.Status.YES.getCode());
+                factoryScheme.setNumber(list1.size() + "");
+                factoryScheme.updateById();
+            }
+        });
         scheme.setStatus(BaseType.SchemeStatus.COMPLETE.getCode());
         return scheme.updateById();
+    }
+
+    @Override
+    public boolean over(String id) {
+        if (StringUtils.isEmpty(id)) {
+            throw new OtherExcetion("请选择要结束的方案");
+        }
+        Scheme scheme = schemeSet.Get(id);
+        if (null == scheme) {
+            throw new OtherExcetion("不存在的方案");
+        }
+        if (BaseType.SchemeStatus.UNDERWAY.getCode().equals(scheme.getStatus())) {
+            scheme.setStatus(BaseType.SchemeStatus.OVER.getCode());
+        } else if (BaseType.SchemeStatus.OVER.getCode().equals(scheme.getStatus())) {
+            if (scheme.getValidity() < System.currentTimeMillis()) {
+                throw new OtherExcetion("已过期的方案不能重新启用");
+            }
+            scheme.setStatus(BaseType.SchemeStatus.UNDERWAY.getCode());
+        }
+        return scheme.updateById();
+    }
+
+    /**
+     * 批量删除方案里面的商品
+     *
+     * @param vo
+     * @return
+     */
+    @Override
+    public boolean deleteBatch(SchemeDeleteBatchListVO vo) {
+        if (StringUtils.isEmpty(vo.getSchemeId())) {
+            throw new OtherExcetion("请选择方案");
+        }
+        if (vo.getList().size() == 0) {
+            throw new OtherExcetion("请选择商品");
+        }
+        Scheme scheme = schemeSet.Get(vo.getSchemeId());
+        if (null == scheme) {
+            throw new OtherExcetion("不存在的方案");
+        }
+        if (!BaseType.SchemeStatus.UNDERWAY.getCode().equals(scheme.getStatus())) {
+            throw new OtherExcetion("该方案已结束");
+        }
+        int[] count = {0};
+        vo.getList().forEach((a) -> {
+            boolean result = false;
+            if (BaseType.UserType.SALER.getCode().equals(a.getType())) {
+                List<Document> salesGoods = scheme.getSalesGoods();
+                for (int i = 0; i < scheme.getSalesGoods().size(); i++) {
+                    FactorySchemeSaleGoodDTO dto = BsonUtil.toBean(salesGoods.get(i), FactorySchemeSaleGoodDTO.class);
+                    if (!StringUtils.isAnyEmpty(a.getProductId(), dto.getSaleGoods().getProductId()) && a.getProductId().equals(dto.getSaleGoods().getProductId())) {
+                        salesGoods.remove(i);
+                        result = true;
+                    }
+                }
+                if (result) {
+                    scheme.setSalesGoods(salesGoods);
+                    if (scheme.updateById()) {
+                        count[0]++;
+                    }
+                }
+            } else if (BaseType.UserType.FACTORY.getCode().equals(a.getType())) {
+                if (StringUtils.isNotEmpty(a.getFactorySchemeId())) {
+                    FactoryScheme factoryScheme = factorySchemeSet.Get(a.getFactorySchemeId());
+                    List<Document> factoryProductIds = factoryScheme.getFactoryProductIds();
+                    for (int i = 0; i < factoryScheme.getFactoryProductIds().size(); i++) {
+                        FactorySchemeProductDTO dto = BsonUtil.toBean(factoryProductIds.get(i), FactorySchemeProductDTO.class);
+                        if (null != dto && !StringUtils.isAnyEmpty(a.getProductId(), dto.getProduct().getId()) && a.getProductId().equals(dto.getProduct().getId())) {
+                            factoryProductIds.remove(i);
+                            result = true;
+                        }
+                    }
+                    if (result) {
+                        factoryScheme.setFactoryProductIds(factoryProductIds);
+                        if (factoryScheme.updateById()) {
+                            count[0]++;
+                        }
+                    }
+                }
+            }
+        });
+        if (count[0] == vo.getList().size()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 生成ppt
+     *
+     * @param vo
+     * @return
+     */
+    @Override
+    public String createPPT(PptVO vo, User user) {
+        if (StringUtils.isAnyEmpty(vo.getEmail(),
+                vo.getMainTitle(),
+                vo.getPhone(),
+                vo.getPosition(),
+                vo.getQq(),
+                vo.getSubhead(),
+                vo.getUserName(),
+                vo.getSchemeId())) {
+            throw new OtherExcetion("请完善必填项");
+        }
+        List<ProductDTO> productDTOS = new ArrayList<>();
+        FactorySchemeDTO dto = this.getDetails(vo.getSchemeId(), user, null, "0");
+        dto.getProductList().forEach(a -> vo.getProductIds().forEach((b) -> {
+            if (a.getProduct().getId().equals(b)) {
+                if (StringUtils.isNotEmpty(a.getProduct().getBrandId())) {
+                    Brand brand = brandSet.Get(a.getProduct().getBrandId());
+                    if (null != brand && StringUtils.isNotEmpty(brand.getName())) {
+                        a.getProduct().setBrandName(brand.getName());
+                    } else {
+                        a.getProduct().setBrandName("无");
+                    }
+                } else {
+                    a.getProduct().setBrandName("无");
+                }
+                productDTOS.add(a);
+            }
+        }));
+        vo.setProductDTOS(productDTOS);
+        String fileName = null;
+        try {
+            fileName = PPTUtil.createPPT(vo);
+        } catch (Exception e) {
+            LOG.error("ppt创建失败");
+            throw new OtherExcetion("ppt创建失败");
+        }
+        return fileName;
+    }
+
+    public static void main(String[] args) throws Exception {
+        String name = ("https://bkimg.cdn.bcebos.com/pic/0df3d7ca7bcb0a46f21f75783429e1246b600c330115?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxODA=,g_7,xp_5,yp_5");
+        URL urlfile = new URL(name);
+        InputStream is = urlfile.openStream();
+        byte[] bytes = IOUtils.toByteArray(is);
+        System.out.println(bytes);
     }
 
 }

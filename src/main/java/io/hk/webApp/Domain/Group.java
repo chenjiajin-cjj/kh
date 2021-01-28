@@ -73,6 +73,17 @@ public class Group extends ViewStore {
         set("factoryId", factoryId);
     }
 
+    /* 商品数量 */
+    @JsonProperty(value = "number")
+    public Long getNumber() {
+        return (Long) get("number");
+    }
+
+    @JsonProperty(value = "number")
+    public void setNumber(Long number) {
+        set("number", number);
+    }
+
     /**
      * 修改分组
      */

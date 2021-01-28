@@ -101,12 +101,12 @@ public class Category extends ViewStore {
 	}
 	/* 商品数量 */
 	@JsonProperty(value = "number")
-	public Integer getNumber() {
-		return (Integer) get("number");
+	public Long getNumber() {
+		return (Long) get("number");
 	}
 
 	@JsonProperty(value = "number")
-	public void setNumber(Integer number) {
+	public void setNumber(Long number) {
 		set("number", number);
 	}
 

@@ -25,7 +25,7 @@ public class SchemeTask {
     private SchemeSet schemeSet;
 
     /**
-     * 超时自动收货  定时器
+     * 过滤过期方案
      *
      * @return
      */

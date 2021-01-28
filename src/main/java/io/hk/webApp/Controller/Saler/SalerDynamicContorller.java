@@ -60,7 +60,7 @@ public class SalerDynamicContorller {
     public Result cooperation(@RequestBody FriendApply friendApply) {
         User user = systemUtil.getUser(httpServletRequest);
         if (StringUtils.isAnyEmpty(user.getTel(), user.getName(), user.getCompanyName(), user.getProvince(), user.getAddr())) {
-            throw new OtherExcetion("完善用户资料后方可进行操作");
+            throw new OtherExcetion(-10,"完善用户资料后方可进行操作");
         }
         friendApply.setApply("无");
         return friendsService.cooperation(friendApply, user, BaseType.UserType.SALER.getCode()) ? Result.succeed("操作成功") : Result.failure("操作失败");
@@ -72,7 +72,8 @@ public class SalerDynamicContorller {
     @GetMapping("getFactoryProducts")
     public Result getFactoryProducts(String factoryId) {
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
-        PageData<Product> pageData = productService.search(pagePars, factoryId);
+        User factory = new User().getById(factoryId);
+        PageData<Product> pageData = productService.search(pagePars, factory);
         return Result.succeed(pageData);
     }
 

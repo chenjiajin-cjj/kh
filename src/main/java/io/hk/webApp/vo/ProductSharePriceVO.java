@@ -6,12 +6,23 @@ public class ProductSharePriceVO {
 
     private double newMoney;
 
+    private double newMoneyTax;
+
     @Override
     public String toString() {
         return "ProductSharePriceVO{" +
                 "productId='" + productId + '\'' +
-                ", newMoney='" + newMoney + '\'' +
+                ", newMoney=" + newMoney +
+                ", newMoneyTax=" + newMoneyTax +
                 '}';
+    }
+
+    public double getNewMoneyTax() {
+        return newMoneyTax;
+    }
+
+    public void setNewMoneyTax(double newMoneyTax) {
+        this.newMoneyTax = newMoneyTax;
     }
 
     public String getProductId() {

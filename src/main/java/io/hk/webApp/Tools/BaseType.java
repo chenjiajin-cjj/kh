@@ -35,7 +35,8 @@ public class BaseType {
     public enum UserType {
 
         FACTORY("1", "供应商"),
-        SALER("2", "经销商");
+        SALER("2", "经销商"),
+        SON("3", "子账号");
 
         private String code;
         private String msg;
@@ -159,7 +160,7 @@ public class BaseType {
         UNDERWAY("1", "进行中"),
         PAST("2", "已过期"),
         COMPLETE("3", "已完成"),
-        OVER("4","已结束");
+        OVER("4", "已结束");
 
         private String code;
         private String msg;
@@ -188,8 +189,8 @@ public class BaseType {
         CHECK("1", "审核信息"),
         COOPERATION("2", "合作信息"),
         SUBMISSION("3", "提报信息"),
-        SYSTEM("4","系统信息");
-
+        SYSTEM("4", "系统信息"),
+        MESSAGE("5", "站内信消息");
         private String code;
         private String msg;
 
@@ -217,7 +218,7 @@ public class BaseType {
         BASE("1", "默认"),
         COMMON("2", "普通"),
         VIP("3", "vip"),
-        INVITE("4","特邀");
+        INVITE("4", "特邀");
 
         private String code;
         private String msg;
@@ -246,7 +247,7 @@ public class BaseType {
         ACCEPT("1", "已接受"),
         UNACCEPT("2", "未接受"),
         NO_HAVE("3", "对方还没有这个商品"),
-        REFUSE("4","已拒绝");
+        REFUSE("4", "已拒绝");
 
         private String code;
         private String msg;
@@ -268,6 +269,33 @@ public class BaseType {
             return msg;
         }
 
+    }
+
+    public enum Time {
+        WEEK("1","一周前"),
+        MONTH("2","一月前"),
+        THREE_MONTH("3","三月前"),
+        HALF_YEAR("4","半年前"),
+        YEAR("5","一年前");
+        private String code;
+        private String msg;
+
+        Time(String code, String msg) {
+            this.code = code;
+            this.msg = msg;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
     }
 
 }

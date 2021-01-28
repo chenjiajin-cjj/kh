@@ -41,6 +41,9 @@ public class GroupController {
         if (null != user) {
             group.setFactoryId(user.getId());
         }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return groupService.add(group) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
 
@@ -56,6 +59,9 @@ public class GroupController {
         Group group1 = new Group().getById(group.getId());
         if(null == group1 || !user.getId().equals(group1.getFactoryId())){
             throw new OtherExcetion("只能修改自己发布分组");
+        }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
         }
         return groupService.rename(group) ? Result.succeed("修改成功") : Result.failure("操作成功");
     }
@@ -73,6 +79,9 @@ public class GroupController {
         if(null == group1 || !user.getId().equals(group1.getFactoryId())){
             throw new OtherExcetion("只能删除自己发布分组");
         }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return groupService.delete(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
     }
 
@@ -85,6 +94,9 @@ public class GroupController {
     @PostMapping("sort")
     public Result sort(@RequestBody GroupSortVO vo) {
         User user = systemUtil.getUser(httpServletRequest);
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return groupService.sort(vo) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -100,6 +112,9 @@ public class GroupController {
         if(null == group1 || !user.getId().equals(group1.getFactoryId())){
             throw new OtherExcetion("只能修改自己发布分组");
         }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return group.updateById() ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
@@ -109,7 +124,7 @@ public class GroupController {
     @GetMapping("search")
     public Result search(){
         User user = systemUtil.getUser(httpServletRequest);
-        return Result.succeed(groupService.search(user.getId()));
+        return Result.succeed(groupService.search(user));
     }
 
     /**
@@ -117,6 +132,10 @@ public class GroupController {
      */
     @PostMapping("showOrHide")
     public Result showOrHide(@RequestBody Group group){
+        User user = systemUtil.getUser(httpServletRequest);
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         return groupService.showOrHide(group.getId()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 

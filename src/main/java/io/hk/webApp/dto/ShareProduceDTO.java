@@ -16,6 +16,8 @@ public class ShareProduceDTO {
 
     private Double newMoney;
 
+    private Double newMoneyTax;
+
     private String imgs;
 
     private Product product;
@@ -26,9 +28,18 @@ public class ShareProduceDTO {
                 "productId='" + productId + '\'' +
                 ", status='" + status + '\'' +
                 ", newMoney=" + newMoney +
+                ", newMoneyTax=" + newMoneyTax +
                 ", imgs='" + imgs + '\'' +
                 ", product=" + product +
                 '}';
+    }
+
+    public Double getNewMoneyTax() {
+        return newMoneyTax;
+    }
+
+    public void setNewMoneyTax(Double newMoneyTax) {
+        this.newMoneyTax = newMoneyTax;
     }
 
     public Double getNewMoney() {

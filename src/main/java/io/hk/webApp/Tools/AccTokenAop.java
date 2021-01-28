@@ -62,7 +62,7 @@ public class AccTokenAop {
             long nowTimes = System.currentTimeMillis();
             long lastLoginTime = nowTimes;
             if (null != user.getLastloginTime()) {
-                lastLoginTime = user.getLastloginTime().getTime();
+                lastLoginTime = user.getLastloginTime();
             }
             int day = Integer.parseInt(PropertiesHelp.getApplicationConf("loginTime"));
             if ((day * 86400000 + lastLoginTime) < nowTimes) {

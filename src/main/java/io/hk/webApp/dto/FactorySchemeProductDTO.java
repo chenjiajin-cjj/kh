@@ -8,17 +8,23 @@ public class FactorySchemeProductDTO {
 
     private Product product;
 
-    private double factoryNewMoney;
+    private double factoryNewMoneyTax;
 
-    private double salerNewMoney;
+    private double factoryNewMoneyTaxNo;
+
+    private double salerNewMoneyTax;
+
+    private double salerNewMoneyTaxNo;
 
     @Override
     public String toString() {
         return "FactorySchemeProductDTO{" +
                 "productIds='" + productIds + '\'' +
                 ", product=" + product +
-                ", factoryNewMoney=" + factoryNewMoney +
-                ", salerNewMoney=" + salerNewMoney +
+                ", factoryNewMoneyTax=" + factoryNewMoneyTax +
+                ", factoryNewMoneyTaxNo=" + factoryNewMoneyTaxNo +
+                ", salerNewMoneyTax=" + salerNewMoneyTax +
+                ", salerNewMoneyTaxNo=" + salerNewMoneyTaxNo +
                 '}';
     }
 
@@ -38,19 +44,35 @@ public class FactorySchemeProductDTO {
         this.product = product;
     }
 
-    public double getFactoryNewMoney() {
-        return factoryNewMoney;
+    public double getFactoryNewMoneyTax() {
+        return factoryNewMoneyTax;
     }
 
-    public void setFactoryNewMoney(double factoryNewMoney) {
-        this.factoryNewMoney = factoryNewMoney;
+    public void setFactoryNewMoneyTax(double factoryNewMoneyTax) {
+        this.factoryNewMoneyTax = factoryNewMoneyTax;
     }
 
-    public double getSalerNewMoney() {
-        return salerNewMoney;
+    public double getFactoryNewMoneyTaxNo() {
+        return factoryNewMoneyTaxNo;
     }
 
-    public void setSalerNewMoney(double salerNewMoney) {
-        this.salerNewMoney = salerNewMoney;
+    public void setFactoryNewMoneyTaxNo(double factoryNewMoneyTaxNo) {
+        this.factoryNewMoneyTaxNo = factoryNewMoneyTaxNo;
+    }
+
+    public double getSalerNewMoneyTax() {
+        return salerNewMoneyTax;
+    }
+
+    public void setSalerNewMoneyTax(double salerNewMoneyTax) {
+        this.salerNewMoneyTax = salerNewMoneyTax;
+    }
+
+    public double getSalerNewMoneyTaxNo() {
+        return salerNewMoneyTaxNo;
+    }
+
+    public void setSalerNewMoneyTaxNo(double salerNewMoneyTaxNo) {
+        this.salerNewMoneyTaxNo = salerNewMoneyTaxNo;
     }
 }

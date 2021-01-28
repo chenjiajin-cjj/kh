@@ -3,15 +3,18 @@ package io.hk.webApp.Domain;
 import java.util.Date;
 import java.util.UUID;
 
+import cn.hutool.core.date.DateUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
 import io.framecore.Tool.Md5Help;
+import io.hk.webApp.DataAccess.LoginLogSet;
 import io.hk.webApp.DataAccess.UserSet;
 import io.hk.webApp.Tools.BaseAop;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
+import io.hk.webApp.Tools.iparea.IPSeekers;
 import org.apache.commons.lang3.StringUtils;
 
 public class User extends ViewStore {
@@ -40,6 +43,17 @@ public class User extends ViewStore {
         set("phone", phone);
     }
 
+    /* 真实手机账号 realPhone */
+    @JsonProperty(value = "realPhone")
+    public String getRealPhone() {
+        return (String) get("realPhone");
+    }
+
+    @JsonProperty(value = "realPhone")
+    public void setRealPhone(String realPhone) {
+        set("realPhone", realPhone);
+    }
+
     /* identity  , 1: factory  2:saler */
     @JsonProperty(value = "identity")
     public Integer getIdentity() {
@@ -65,13 +79,24 @@ public class User extends ViewStore {
 
     /* 上次登录时间 lastloginTime */
     @JsonProperty(value = "lastloginTime")
-    public Date getLastloginTime() {
-        return (Date) get("lastloginTime");
+    public Long getLastloginTime() {
+        return (Long) get("lastloginTime");
     }
 
     @JsonProperty(value = "lastloginTime")
-    public void setLastloginTime(Date lastloginTime) {
+    public void setLastloginTime(Long lastloginTime) {
         set("lastloginTime", lastloginTime);
+    }
+
+    /* 创建时间 _ctime */
+    @JsonProperty(value = "_ctime")
+    public Date getCTime() {
+        return (Date) get("_ctime");
+    }
+
+    @JsonProperty(value = "_ctime")
+    public void setCTime(Date _ctime) {
+        set("_ctime", _ctime);
     }
 
     /* 用户身份 1是供应商  2是经销商  type */
@@ -206,12 +231,57 @@ public class User extends ViewStore {
         set("status", status);
     }
 
+    /* 上级id fatherId */
+    @JsonProperty(value = "fatherId")
+    public String getFatherId() {
+        return (String) get("fatherId");
+    }
+
+    @JsonProperty(value = "fatherId")
+    public void setFatherId(String fatherId) {
+        set("fatherId", fatherId);
+    }
+
+    /* 创建时间 */
+    @JsonProperty(value = "createTime")
+    public Long getCreateTime() {
+        return (Long) get("createTime");
+    }
+
+    @JsonProperty(value = "createTime")
+    public void setCreateTime(Long createTime) {
+        set("createTime", createTime);
+    }
+
+    /* 是否认证 1是 2否 auth */
+    @JsonProperty(value = "auth")
+    public String getAuth() {
+        return (String) get("auth");
+    }
+
+    @JsonProperty(value = "auth")
+    public void setAuth(String auth) {
+        set("auth", auth);
+    }
+
+    /* 方案数量 scheme */
+    @JsonProperty(value = "scheme")
+    public Long getScheme() {
+        return (Long) get("scheme");
+    }
+
+    @JsonProperty(value = "scheme")
+    public void setScheme(Long scheme) {
+        set("scheme", scheme);
+    }
+
+
     /**
      * 登录
      *
      * @return
      */
-    public User login() {
+    public User login(String ip) {
         String loginKey = UUID.randomUUID().toString().replace("-", "");
         UserSet userSet = Holder.getBean(UserSet.class);
         User user = this.getUserByPhone(this.getPhone());
@@ -221,11 +291,30 @@ public class User extends ViewStore {
         if (!Md5Help.toMD5(this.getPassword()).equals(user.getPassword())) {
             throw new OtherExcetion("密码错误");
         }
-        if(!BaseType.Status.YES.getCode().equals(user.getStatus())){
+        if (!BaseType.Status.YES.getCode().equals(user.getStatus())) {
             throw new OtherExcetion("账号已被封禁");
         }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            if (StringUtils.isEmpty(user.getRealPhone()) && BaseType.UserType.FACTORY.getCode().equals(user.getType())) {
+                throw new OtherExcetion(-3, "业务员请先绑定手机号");
+            }
+        }
+        {
+            LoginLogSet loginLogSet = Holder.getBean(LoginLogSet.class);
+            LoginLog loginLog = new LoginLog();
+            loginLog.setCTime(System.currentTimeMillis());
+            loginLog.setPhone(user.getPhone());
+            loginLog.setName(null == user.getName() ? "" : user.getName());
+            loginLog.setStatus("1");
+            loginLog.setType(user.getType());
+            loginLog.setIp(ip);
+            String addr = IPSeekers.getInstance().getAddress(ip);
+            loginLog.setAddr(null == addr ? "未知" : addr);
+            loginLog.setFacility("未知");
+            loginLogSet.Add(loginLog);
+        }
         user.setLoginKey(loginKey);
-        user.setLastloginTime(new Date());
+        user.setLastloginTime(System.currentTimeMillis());
         return userSet.Update(user.getId(), user) > 0 ? this.getUserByPhone(this.getPhone()) : null;
     }
 

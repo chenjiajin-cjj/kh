@@ -6,7 +6,9 @@ public class FactorySchemeSaleGoodDTO {
 
     private String saleGoodId;
 
-    private double SalerNewMoney;
+    private double salerNewMoneyTax;
+
+    private double salerNewMoneyTaxNo;
 
     private SaleGoods saleGoods;
 
@@ -14,7 +16,8 @@ public class FactorySchemeSaleGoodDTO {
     public String toString() {
         return "FactorySchemeSaleGoodDTO{" +
                 "saleGoodId='" + saleGoodId + '\'' +
-                ", SalerNewMoney=" + SalerNewMoney +
+                ", salerNewMoneyTax=" + salerNewMoneyTax +
+                ", salerNewMoneyTaxNo=" + salerNewMoneyTaxNo +
                 ", saleGoods=" + saleGoods +
                 '}';
     }
@@ -27,12 +30,20 @@ public class FactorySchemeSaleGoodDTO {
         this.saleGoodId = saleGoodId;
     }
 
-    public double getSalerNewMoney() {
-        return SalerNewMoney;
+    public double getSalerNewMoneyTax() {
+        return salerNewMoneyTax;
     }
 
-    public void setSalerNewMoney(double salerNewMoney) {
-        SalerNewMoney = salerNewMoney;
+    public void setSalerNewMoneyTax(double salerNewMoneyTax) {
+        this.salerNewMoneyTax = salerNewMoneyTax;
+    }
+
+    public double getSalerNewMoneyTaxNo() {
+        return salerNewMoneyTaxNo;
+    }
+
+    public void setSalerNewMoneyTaxNo(double salerNewMoneyTaxNo) {
+        this.salerNewMoneyTaxNo = salerNewMoneyTaxNo;
     }
 
     public SaleGoods getSaleGoods() {

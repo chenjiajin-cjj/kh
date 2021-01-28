@@ -40,13 +40,13 @@ public class SalerAop {
     public void beforeControll(JoinPoint joinPoint) throws Exception {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
-        baseTool.isSaler(request);
         startTime = System.currentTimeMillis();
         LOG.info("请求Url : " + request.getRequestURL().toString());
         LOG.info("请求方式 : " + request.getMethod());
         LOG.info("请求ip : " + request.getRemoteAddr());
         LOG.info("请求方法 : " + joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName());
         LOG.info("请求参数 : " + Arrays.toString(joinPoint.getArgs()));
+        baseTool.isSaler(request);
     }
     @AfterReturning(returning = "ret", pointcut = "webLog()")
     public void doAfterReturning(Object ret) throws Throwable {

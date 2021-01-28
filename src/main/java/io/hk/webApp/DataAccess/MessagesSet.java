@@ -1,12 +1,19 @@
 package io.hk.webApp.DataAccess;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import io.framecore.Frame.PageData;
+import io.framecore.Mongodb.ExpCal;
+import io.framecore.Mongodb.IMongoQuery;
 import io.framecore.Mongodb.Set;
-import io.hk.webApp.Domain.Messages;
+import io.hk.webApp.Domain.*;
+import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.TablePagePars;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
+import java.util.Hashtable;
 import java.util.List;
 
 
@@ -37,4 +44,5 @@ public class MessagesSet extends Set<Messages> {
 		pageData.rows = list;
 		return pageData;
 	}
+
 }

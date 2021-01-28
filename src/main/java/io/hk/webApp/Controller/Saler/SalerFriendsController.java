@@ -6,12 +6,14 @@ import io.hk.webApp.Domain.FriendApply;
 import io.hk.webApp.Domain.Friends;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IFriendsService;
+import io.hk.webApp.Service.ISaleGoodsService;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
 import io.hk.webApp.Tools.TablePagePars;
 import io.hk.webApp.dto.FactoryFriendsDTO;
 import io.hk.webApp.vo.CustomerBatchDeleteVO;
+import io.hk.webApp.vo.FriendsQuotesVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +36,9 @@ public class SalerFriendsController {
     @Autowired
     private SystemUtil systemUtil;
 
+    @Autowired
+    private ISaleGoodsService iSaleGoodsService;
+
 
     /**
      * 展示待审核的供应商
@@ -55,7 +60,7 @@ public class SalerFriendsController {
             throw new OtherExcetion("请选择要通过的客户");
         }
         if (StringUtils.isAnyEmpty(user.getTel(), user.getName(), user.getCompanyName(), user.getProvince(), user.getAddr())) {
-            throw new OtherExcetion("完善用户资料后方可进行操作");
+            throw new OtherExcetion(-10, "完善用户资料后方可进行操作");
         }
         return friendsService.check(friends, BaseType.Consent.PASS.getCode(), user) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
@@ -77,7 +82,11 @@ public class SalerFriendsController {
      */
     @DeleteMapping("delete")
     public Result delete(@RequestBody CustomerBatchDeleteVO vo) {
-        return friendsService.batchDelete(vo.getIds()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        User user = systemUtil.getUser(httpServletRequest);
+        if (vo.getIds().length != 1) {
+            throw new OtherExcetion("暂时只支持一个一个解除合作");
+        }
+        return friendsService.salerDelete(vo.getIds()[0],user) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -123,11 +132,23 @@ public class SalerFriendsController {
     }
 
     /**
+     * 查询合作厂商的分享给经销商的商品
+     */
+    @GetMapping("searchProducts")
+    public Result searchProducts(String factoryId) {
+        User user = systemUtil.getUser(httpServletRequest);
+        TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        return Result.succeed(iSaleGoodsService.searchProducts(factoryId, user, pagePars));
+    }
+
+
+    /**
      * 一键索要报价
      */
     @PostMapping("quotes")
-    public Result quotes() {
-        return null;
+    public Result quotes(@RequestBody FriendsQuotesVO vo) {
+        User user = systemUtil.getUser(httpServletRequest);
+        return friendsService.quotes(vo, user) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
 

@@ -4,11 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
 import io.hk.webApp.DataAccess.AdminSet;
-import io.hk.webApp.DataAccess.ProductSet;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
 
 public class Admin extends ViewStore {
 
@@ -59,6 +57,17 @@ public class Admin extends ViewStore {
         set("status", status);
     }
 
+    /* 昵称 name */
+    @JsonProperty(value = "name")
+    public String getName() {
+        return (String) get("name");
+    }
+
+    @JsonProperty(value = "name")
+    public void setName(String name) {
+        set("name", name);
+    }
+
     /* loginKey */
     @JsonProperty(value = "loginKey")
     public String getLoginKey() {
@@ -70,15 +79,48 @@ public class Admin extends ViewStore {
         set("loginKey", loginKey);
     }
 
+    /* 创建时间 ctime */
+    @JsonProperty(value = "ctime")
+    public Long getCtime() {
+        return (Long) get("ctime");
+    }
+
+    @JsonProperty(value = "ctime")
+    public void setCtime(Long ctime) {
+        set("ctime", ctime);
+    }
+
+
     /* 上次登录时间 lastloginTime */
     @JsonProperty(value = "lastloginTime")
-    public Date getLastloginTime() {
-        return (Date) get("lastloginTime");
+    public Long getLastloginTime() {
+        return (Long) get("lastloginTime");
     }
 
     @JsonProperty(value = "lastloginTime")
-    public void setLastloginTime(Date lastloginTime) {
+    public void setLastloginTime(Long lastloginTime) {
         set("lastloginTime", lastloginTime);
+    }
+
+    /* 头像 img */
+    @JsonProperty(value = "img")
+    public String getImg() {
+        return (String) get("img");
+    }
+
+    @JsonProperty(value = "img")
+    public void setImg(String img) {
+        set("img", img);
+    }
+
+    @JsonProperty(value = "oldPwd")
+    public String getOldPwd() {
+        return (String) get("oldPwd");
+    }
+
+    @JsonProperty(value = "oldPwd")
+    public void setOldPwd(String oldPwd) {
+        set("oldPwd", oldPwd);
     }
 
 
@@ -87,7 +129,7 @@ public class Admin extends ViewStore {
      */
     public boolean updateById(){
         if(StringUtils.isEmpty(this.getId())){
-            throw new OtherExcetion("请选择要修改的商品");
+            throw new OtherExcetion("请选择要修改的管理员");
         }
         AdminSet adminSet = Holder.getBean(AdminSet.class);
         return adminSet.Update(this.getId(),this) > 0;

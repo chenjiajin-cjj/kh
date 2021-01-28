@@ -53,18 +53,23 @@ public class FactorySchemeSet extends Set<FactoryScheme> {
     private BasicDBObject buildWhere(Hashtable<String, Object> where, String factoryId){
         BasicDBObject whereBson = new BasicDBObject();
         BasicDBList values = new BasicDBList();
+        values.add(ExpCal.Analysis("factoryId=?",factoryId));
         if(null == where || where.size() == 0){
+            whereBson.append("$and",values);
             return whereBson;
         }
-        values.add(ExpCal.Analysis("factoryId=?",factoryId));
         for (String key : where.keySet()){
             switch (key){
-                case "priceBegin":{
-                    values.add(ExpCal.Analysis("priceBegin>=?",Double.parseDouble(where.get(key).toString())));
+                case "name":{
+                    values.add(ExpCal.Analysis("name like?",where.get(key).toString()));
                     break;
                 }
-                case "priceEnd":{
-                    values.add(ExpCal.Analysis("priceEnd<=?",Double.parseDouble(where.get(key).toString())));
+                case "beginTime":{
+                    values.add(ExpCal.Analysis("validity>=?",Long.parseLong(where.get(key).toString())));
+                    break;
+                }
+                case "endTime":{
+                    values.add(ExpCal.Analysis("validity<=?",Long.parseLong(where.get(key).toString())));
                     break;
                 }
             }

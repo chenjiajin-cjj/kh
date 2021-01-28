@@ -7,7 +7,9 @@ import io.hk.webApp.Domain.Friends;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Tools.TablePagePars;
 import io.hk.webApp.dto.FactoryFriendsDTO;
+import io.hk.webApp.vo.FriendsQuotesVO;
 import io.hk.webApp.vo.ProductShareVO;
+import io.hk.webApp.vo.TransferVO;
 import io.hk.webApp.vo.UpdatePriceVO;
 
 import java.util.List;
@@ -99,4 +101,35 @@ public interface IFriendsService {
      * @return
      */
     boolean updatePrice(UpdatePriceVO vo, User user);
+
+    /**
+     * 批量转移子账号
+     * @param vo
+     * @param user
+     * @return
+     */
+    boolean transfer(TransferVO vo, User user);
+
+    /**
+     * 索要报价
+     * @param vo
+     * @param user
+     * @return
+     */
+    boolean quotes(FriendsQuotesVO vo, User user);
+
+    /**
+     * 查询客户审核的条数
+     * @param user
+     * @return
+     */
+    Object getAllCount(User user);
+
+    /**
+     * 经销商解除合作的同时删除供应商的所有商品
+     * @param id
+     * @param saler
+     * @return
+     */
+    boolean salerDelete(String id, User saler);
 }

@@ -24,7 +24,9 @@ public class BrandServiceImp implements IBrandService {
      * @return
      */
     @Override
-    public boolean addBrand(Brand brand) {
+    public boolean addBrand(Brand brand,User user) {
+        brand.setDetails("无");
+        brand.setPerpetual(BaseType.Status.YES.getCode());
         if(StringUtils.isAnyEmpty(brand.getName(), brand.getDetails(),brand.getPerpetual())){
             throw new OtherExcetion("请完善必填项");
         }
@@ -32,6 +34,7 @@ public class BrandServiceImp implements IBrandService {
             brand.setTime(System.currentTimeMillis());
         }
         brand.setStatus(BaseType.Consent.BASE.getCode());
+        brand.setUserName(user.getCompanyName());
         return brandSet.addBrand(brand);
     }
 

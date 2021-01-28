@@ -3,6 +3,8 @@ package io.hk.webApp.Domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.framecore.Orm.ViewStore;
 
+import java.util.List;
+
 public class Messages extends ViewStore {
     // _id
     @JsonProperty(value = "_id")
@@ -106,6 +108,28 @@ public class Messages extends ViewStore {
     @JsonProperty(value = "status")
     public void setStatus(String status) {
         set("status", status);
+    }
+
+    /* 缩略图  img */
+    @JsonProperty(value = "img")
+    public List<String> getImg() {
+        return (List<String>) get("img");
+    }
+
+    @JsonProperty(value = "img")
+    public void setImg(List<String> img) {
+        set("img", img);
+    }
+
+    /* 标题内容  titleMessage */
+    @JsonProperty(value = "titleMessage")
+    public String getTitleMessage() {
+        return (String) get("titleMessage");
+    }
+
+    @JsonProperty(value = "titleMessage")
+    public void setTitleMessage(String titleMessage) {
+        set("titleMessage", titleMessage);
     }
 
 }

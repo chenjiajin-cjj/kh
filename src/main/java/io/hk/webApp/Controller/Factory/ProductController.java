@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import io.hk.webApp.Domain.Brand;
 import io.hk.webApp.Domain.Dynamic;
 import io.hk.webApp.Domain.User;
+import io.hk.webApp.Service.IClassifyService;
 import io.hk.webApp.Service.IProductService;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
@@ -42,6 +43,9 @@ public class ProductController {
     @Autowired
     private SystemUtil systemUtil;
 
+    @Autowired
+    private IClassifyService iClassifyService;
+
     /**
      * 新增
      */
@@ -50,6 +54,9 @@ public class ProductController {
         User user = systemUtil.getUser(httpServletRequest);
         if (null != user) {
             product.setFactoryId(user.getId());
+        }
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
         }
         return productService.addProduct(product) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
@@ -67,7 +74,10 @@ public class ProductController {
         if (!product1.getFactoryId().equals(user.getId())) {
             throw new OtherExcetion("只能修改自己的发布的商品");
         }
-        return productService.update(product) ? Result.succeed("修改成功") : Result.failure("修改失败");
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
+        return productService.update(product,user) ? Result.succeed("修改成功") : Result.failure("修改失败");
     }
 
     /**
@@ -75,12 +85,11 @@ public class ProductController {
      */
     @DeleteMapping("delete")
     public Result delete(String id) {
-        Product product = new Product().getById(id);
         User user = systemUtil.getUser(httpServletRequest);
-        if (!product.getFactoryId().equals(user.getId())) {
-            throw new OtherExcetion("只能删除自己发布的商品");
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
         }
-        return product.deleteById() ? Result.succeed("删除成功") : Result.failure("删除失败");
+        return productService.delete(id) ? Result.succeed("删除成功") : Result.failure("删除失败");
     }
 
     /**
@@ -90,6 +99,10 @@ public class ProductController {
     public Result online(@RequestBody BaseVO vo) {
         if (StringUtils.isEmpty(vo.getId())) {
             throw new OtherExcetion("请选择要上架的商品");
+        }
+        User user = systemUtil.getUser(httpServletRequest);
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
         }
         Product product = new Product();
         product.setId(vo.getId());
@@ -105,6 +118,10 @@ public class ProductController {
         if (StringUtils.isEmpty(vo.getId())) {
             throw new OtherExcetion("请选择要下架的商品");
         }
+        User user = systemUtil.getUser(httpServletRequest);
+        if (StringUtils.isNotEmpty(user.getFatherId())) {
+            throw new OtherExcetion("子账号无权操作");
+        }
         Product product = new Product();
         product.setId(vo.getId());
         product.setStatus("2");
@@ -116,7 +133,8 @@ public class ProductController {
      */
     @GetMapping("searchById")
     public Result searById(String id) {
-        return Result.succeed(new Product().getById(id));
+        User user = systemUtil.getUser(httpServletRequest);
+        return Result.succeed(productService.getOne(id,user));
     }
 
     /**
@@ -126,7 +144,7 @@ public class ProductController {
     public Result search() {
         User user = systemUtil.getUser(httpServletRequest);
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
-        PageData<Product> pageData = productService.search(pagePars, user.getId());
+        PageData<Product> pageData = productService.search(pagePars, user);
         return Result.succeed(pageData);
     }
 
@@ -136,33 +154,50 @@ public class ProductController {
     @GetMapping("getProutBrandAndGroup")
     public Result getProutBrandAndGroup() {
         User user = systemUtil.getUser(httpServletRequest);
+        String userId;
+        if(StringUtils.isEmpty(user.getFatherId())){
+            userId = user.getId();
+        }else{
+            userId = user.getFatherId();
+        }
         Map<String, Object> map = new HashMap<>();
-        List<Brand> list = productService.searchBrand(user.getId());
+        List<Brand> list = productService.searchBrand(userId);
         List<Brand> brandList = new ArrayList<>();
-        list.forEach((a)->{
-            if("1".equals(a.getPerpetual()) || a.getTime() >= System.currentTimeMillis()){
+        list.forEach((a) -> {
+            if ("1".equals(a.getPerpetual()) || a.getTime() >= System.currentTimeMillis()) {
                 brandList.add(a);
             }
         });
         {
-            List<Map<String,String>> tagList = new ArrayList<>();
-            Map<String,String> tag = new HashMap<>();
-            tag.put("name","推荐");
-            tag.put("code","tagRec");
+            List<Map<String, String>> tagList = new ArrayList<>();
+            Map<String, String> tag = new HashMap<>();
+            tag.put("name", "推荐");
+            tag.put("code", "tagRec");
             tagList.add(tag);
             tag = new HashMap<>();
-            tag.put("name","热销");
-            tag.put("code","tagHot");
+            tag.put("name", "热销");
+            tag.put("code", "tagHot");
             tagList.add(tag);
             tag = new HashMap<>();
-            tag.put("name","新品");
-            tag.put("code","tagNew");
+            tag.put("name", "新品");
+            tag.put("code", "tagNew");
             tagList.add(tag);
-            map.put("tag",tagList);
+            map.put("tag", tagList);
         }
         map.put("brand", brandList);
-        map.put("category", productService.searchGroups(user.getId()));
+        map.put("group", productService.searchGroups(userId));
+        map.put("classify",iClassifyService.searchClassifyName());
         return Result.succeed(map);
     }
+
+
+    /**
+     * 屏蔽/取消屏蔽商品
+     */
+    @GetMapping("shield")
+    public Result shield(String productId) {
+        return productService.shield(productId) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
 
 }

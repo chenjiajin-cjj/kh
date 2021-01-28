@@ -61,18 +61,27 @@ public class SchemeSet extends Set<Scheme> {
     private BasicDBObject buildWhere(Hashtable<String, Object> where, String salerId){
         BasicDBObject whereBson = new BasicDBObject();
         BasicDBList values = new BasicDBList();
+        values.add(ExpCal.Analysis("salerId=?",salerId));
         if(null == where || where.size() == 0){
+            whereBson.append("$and",values);
             return whereBson;
         }
-        values.add(ExpCal.Analysis("salerId=?",salerId));
         for (String key : where.keySet()){
             switch (key){
-                case "validityBegin":{
+                case "beginTime":{
                     values.add(ExpCal.Analysis("validity>=?",Long.parseLong(where.get(key).toString())));
                     break;
                 }
-                case "validityEnd":{
+                case "endTime":{
                     values.add(ExpCal.Analysis("validity<=?",Long.parseLong(where.get(key).toString())));
+                    break;
+                }
+                case "status":{
+                    values.add(ExpCal.Analysis("status=?",where.get(key).toString()));
+                    break;
+                }
+                case "name":{
+                    values.add(ExpCal.Analysis("name like?",where.get(key).toString()));
                     break;
                 }
             }

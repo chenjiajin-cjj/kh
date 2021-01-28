@@ -52,22 +52,23 @@ public class SchemeController {
     @PostMapping("submission")
     public Result submission(@RequestBody FactorySchemeSubmissionVO vo) {
         User user = systemUtil.getUser(httpServletRequest);
-        return factorySchemeService.submission(vo,user) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return factorySchemeService.submission(vo, user) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
      * 查询方案详情
      */
     @GetMapping("getDetails")
-    public Result getDetails(String factorySchemeId){
-        return Result.succeed(factorySchemeService.getDetails(factorySchemeId));
+    public Result getDetails(String factorySchemeId) {
+        TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        return Result.succeed(factorySchemeService.getDetails(factorySchemeId, pagePars));
     }
 
     /**
      * 修改商品价格
      */
     @PostMapping("updateMoney")
-    public Result updateMoney(@RequestBody FactorySchemeUpdateMoneyVO vo){
+    public Result updateMoney(@RequestBody FactorySchemeUpdateMoneyVO vo) {
         return factorySchemeService.updateMoney(vo) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 }

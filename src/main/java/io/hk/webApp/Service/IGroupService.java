@@ -2,6 +2,7 @@ package io.hk.webApp.Service;
 
 import io.framecore.Frame.PageData;
 import io.hk.webApp.Domain.Group;
+import io.hk.webApp.Domain.User;
 import io.hk.webApp.vo.GroupSortVO;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public interface IGroupService {
      * 展示分组及其下级信息
      * @return
      */
-    PageData<Group> search(String factoryId);
+    PageData<Group> search(User user);
 
     /**
      * 隐藏或显示分组

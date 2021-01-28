@@ -41,6 +41,17 @@ public class SaleGoods extends ViewStore {
         set("salerId", salerId);
     }
 
+    /* 供应商id factoryId */
+    @JsonProperty(value = "factoryId")
+    public String getFactoryId() {
+        return (String) get("factoryId");
+    }
+
+    @JsonProperty(value = "factoryId")
+    public void setFactoryId(String factoryId) {
+        set("factoryId", factoryId);
+    }
+
     /* 商品的数量 number */
     @JsonProperty(value = "number")
     public Long getNumber() {
@@ -86,15 +97,15 @@ public class SaleGoods extends ViewStore {
 
 
     /* 商品的实体对象 productBean */
-//    @JsonProperty(value = "productBean")
-//    public Product getProductBean() {
-//        return (Product) get("productBean");
-//    }
-//
-//    @JsonProperty(value = "productBean")
-//    public void setProductBean(Product productBean) {
-//        set("productBean", productBean);
-//    }
+    @JsonProperty(value = "productBean")
+    public Product getProductBean() {
+        return (Product) get("productBean");
+    }
+
+    @JsonProperty(value = "productBean")
+    public void setProductBean(Product productBean) {
+        set("productBean", productBean);
+    }
 
 
     /* 自有商品的标记 1就是自有2就不是 type */
@@ -108,30 +119,156 @@ public class SaleGoods extends ViewStore {
         set("type", type);
     }
 
-    /* 设为主推  */
+    /* 设为主推 1是主推2不是  */
     @JsonProperty(value = "recommend")
-    public Boolean getRecommend() {
-        return (Boolean) get("recommend");
+    public String getRecommend() {
+        return (String) get("recommend");
     }
 
     @JsonProperty(value = "recommend")
-    public void setRecommend(Boolean recommend) {
+    public void setRecommend(String recommend) {
         set("recommend", recommend);
     }
 
-    /* 商品的价格 price */
+    /* 商品的价格不含税 price */
     @JsonProperty(value = "price")
-    public double getPrice() {
-        return (double) get("price");
+    public Double getPrice() {
+        return (Double) get("price");
     }
 
     @JsonProperty(value = "price")
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         set("price", price);
     }
 
+    /* 商品的价格含税 priceTax */
+    @JsonProperty(value = "priceTax")
+    public Double getPriceTax() {
+        return (Double) get("priceTax");
+    }
+
+    @JsonProperty(value = "priceTax")
+    public void setPriceTax(Double priceTax) {
+        set("priceTax", priceTax);
+    }
+
+    /* 是否显示1是2否 shield */
+    @JsonProperty(value = "shield")
+    public String getShield() {
+        return (String) get("shield");
+    }
+
+    @JsonProperty(value = "shield")
+    public void setShield(String shield) {
+        set("shield", shield);
+    }
 
 
+    /* 是否认证1是2否 authentication */
+    @JsonProperty(value = "authentication")
+    public Boolean getAuthentication() {
+        return (Boolean) get("authentication");
+    }
+
+    @JsonProperty(value = "authentication")
+    public void setAuthentication(Boolean authentication) {
+        set("authentication", authentication);
+    }
+
+    /* 公司名  cname */
+    @JsonProperty(value = "cname")
+    public String getCName() {
+        return (String) get("cname");
+    }
+
+    @JsonProperty(value = "cname")
+    public void setCName(String cname) {
+        set("cname", cname);
+    }
+
+    /* 品牌 brandId */
+    @JsonProperty(value = "brandId")
+    public String getBrandId() {
+        return (String) get("brandId");
+    }
+
+    @JsonProperty(value = "brandId")
+    public void setBrandId(String brandId) {
+        set("brandId", brandId);
+    }
+
+    /* 商品分组 productGroup */
+    @JsonProperty(value = "productGroup")
+    public String getProductGroup(){
+        return (String) get("productGroup");
+    }
+
+    @JsonProperty(value = "productGroup")
+    public void setProductGroup(String productGroup){
+        set("productGroup",productGroup);
+    }
+
+    /* 热销标签 1是2否 tagHot */
+    @JsonProperty(value = "tagHot")
+    public String getTagHot(){
+        return (String) get("tagHot");
+    }
+    @JsonProperty(value = "tagHot")
+    public void setTagHot(String tagHot){
+        set("tagHot",tagHot);
+    }
+
+    /* 推荐标签 1是2否 tagRec */
+    @JsonProperty(value = "tagRec")
+    public String getTagRec(){
+        return (String) get("tagRec");
+    }
+    @JsonProperty(value = "tagRec")
+    public void setTagRec(String tagRec){
+        set("tagRec",tagRec);
+    }
+
+    /* 新品标签 1是2否 tagNew */
+    @JsonProperty(value = "tagNew")
+    public String getTagNew(){
+        return (String) get("tagNew");
+    }
+    @JsonProperty(value = "tagNew")
+    public void setTagNew(String tagNew){
+        set("tagNew",tagNew);
+    }
+
+    /* categoryCode */
+    @JsonProperty(value = "categoryCode")
+    public String getCategoryCode() {
+        return (String) get("categoryCode");
+    }
+
+    @JsonProperty(value = "categoryCode")
+    public void setCategoryCode(String categoryCode) {
+        set("categoryCode", categoryCode);
+    }
+
+    /* 商品名称 name */
+    @JsonProperty(value = "name")
+    public String getName() {
+        return (String) get("name");
+    }
+
+    @JsonProperty(value = "name")
+    public void setName(String name) {
+        set("name", name);
+    }
+
+    /* 分类 classifyId */
+    @JsonProperty(value = "classifyId")
+    public String getClassifyId(){
+        return (String) get("classifyId");
+    }
+    @JsonProperty(value = "classifyId")
+    public void setClassifyId(String classifyId){
+        set("classifyId",classifyId);
+    }
     /**
      * 修改
      */

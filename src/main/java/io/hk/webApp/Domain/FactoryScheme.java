@@ -137,6 +137,28 @@ public class FactoryScheme extends ViewStore {
         set("status", status);
     }
 
+    /*   name */
+    @JsonProperty(value = "name")
+    public String getName() {
+        return (String) get("name");
+    }
+
+    @JsonProperty(value = "name")
+    public void setName(String name) {
+        set("name", name);
+    }
+
+
+    /* 方案是否已经被通知 1是2否  scheme */
+    @JsonProperty(value = "scheme")
+    public String getScheme() {
+        return (String) get("scheme");
+    }
+
+    @JsonProperty(value = "scheme")
+    public void setScheme(String scheme) {
+        set("scheme", scheme);
+    }
 
     /**
      * 修改供应商方案

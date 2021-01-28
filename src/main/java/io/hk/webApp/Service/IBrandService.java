@@ -11,7 +11,7 @@ public interface IBrandService {
      * @param brand
      * @return
      */
-    boolean addBrand(Brand brand);
+    boolean addBrand(Brand brand,User user);
 
     /**
      * 查询品牌列表
