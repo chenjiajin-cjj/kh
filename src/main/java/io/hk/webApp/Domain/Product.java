@@ -1,7 +1,5 @@
 package io.hk.webApp.Domain;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.framecore.Aop.Holder;

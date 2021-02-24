@@ -2,20 +2,17 @@ package io.hk.webApp.Controller.Factory;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.alibaba.fastjson.JSONObject;
 import io.hk.webApp.Domain.Brand;
-import io.hk.webApp.Domain.Dynamic;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IClassifyService;
 import io.hk.webApp.Service.IProductService;
+import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
 import io.hk.webApp.vo.BaseVO;
-import io.hk.webApp.vo.ProductShareVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import io.framecore.Frame.PageData;
 import io.framecore.Frame.Result;
 import io.hk.webApp.Domain.Product;
@@ -25,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 供应商商品管理
@@ -58,6 +54,10 @@ public class ProductController {
         if (StringUtils.isNotEmpty(user.getFatherId())) {
             throw new OtherExcetion("子账号无权操作");
         }
+        if (StringUtils.isEmpty(user.getCompanyName())) {
+            throw new OtherExcetion(-10, "完成基本设置后可操作");
+        }
+        product.setCname(user.getCompanyName());
         return productService.addProduct(product) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
 
@@ -77,7 +77,7 @@ public class ProductController {
         if (StringUtils.isNotEmpty(user.getFatherId())) {
             throw new OtherExcetion("子账号无权操作");
         }
-        return productService.update(product,user) ? Result.succeed("修改成功") : Result.failure("修改失败");
+        return productService.update(product, user) ? Result.succeed("修改成功") : Result.failure("修改失败");
     }
 
     /**
@@ -134,7 +134,7 @@ public class ProductController {
     @GetMapping("searchById")
     public Result searById(String id) {
         User user = systemUtil.getUser(httpServletRequest);
-        return Result.succeed(productService.getOne(id,user));
+        return Result.succeed(productService.getOne(id, user));
     }
 
     /**
@@ -144,6 +144,7 @@ public class ProductController {
     public Result search() {
         User user = systemUtil.getUser(httpServletRequest);
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        pagePars.Pars.put("illegal", BaseType.Status.YES.getCode());
         PageData<Product> pageData = productService.search(pagePars, user);
         return Result.succeed(pageData);
     }
@@ -155,9 +156,9 @@ public class ProductController {
     public Result getProutBrandAndGroup() {
         User user = systemUtil.getUser(httpServletRequest);
         String userId;
-        if(StringUtils.isEmpty(user.getFatherId())){
+        if (StringUtils.isEmpty(user.getFatherId())) {
             userId = user.getId();
-        }else{
+        } else {
             userId = user.getFatherId();
         }
         Map<String, Object> map = new HashMap<>();
@@ -186,7 +187,7 @@ public class ProductController {
         }
         map.put("brand", brandList);
         map.put("group", productService.searchGroups(userId));
-        map.put("classify",iClassifyService.searchClassifyName());
+        map.put("classify", iClassifyService.searchClassifyName());
         return Result.succeed(map);
     }
 

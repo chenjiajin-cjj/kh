@@ -1,11 +1,11 @@
 package io.hk.webApp.Service;
 
 import io.framecore.Frame.PageData;
-import io.framecore.Frame.Result;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Tools.TablePagePars;
 import io.hk.webApp.vo.DeleteOperationVO;
 import io.hk.webApp.vo.ExportUsersVO;
+import io.hk.webApp.vo.PassAuthVO;
 import io.hk.webApp.vo.SendSystemMessageVO;
 
 public interface IBackgroundService {
@@ -22,7 +22,7 @@ public interface IBackgroundService {
      * @param brand1
      * @return
      */
-    boolean update(Brand brand1);
+    boolean update(Brand brand1, Admin admin, String ip);
 
     /**
      * 审核品牌
@@ -138,18 +138,18 @@ public interface IBackgroundService {
     /**
      * 通过认证
      *
-     * @param authApply
+     * @param vo
      * @return
      */
-    boolean passAuth(AuthApply authApply, Admin admin, String ip);
+    boolean passAuth(PassAuthVO vo, Admin admin, String ip);
 
     /**
      * 删除申请记录
      *
-     * @param id
+     * @param ids
      * @return
      */
-    boolean deleteAuthApply(String id, Admin admin, String ip);
+    boolean deleteAuthApply(String[] ids, Admin admin, String ip);
 
     /**
      * 发送站内消息
@@ -199,7 +199,7 @@ public interface IBackgroundService {
      * @param admin
      * @return
      */
-    boolean deleteOperationLog(DeleteOperationVO vo, Admin admin,String ip);
+    boolean deleteOperationLog(DeleteOperationVO vo, Admin admin, String ip);
 
     /**
      * 查询站内信消息
@@ -213,11 +213,11 @@ public interface IBackgroundService {
     /**
      * 删除站内信消息
      *
-     * @param id
+     * @param ids
      * @param admin
      * @return
      */
-    boolean deleteSystemMessage(String id, Admin admin, String ip);
+    boolean deleteSystemMessage(String[] ids, Admin admin, String ip);
 
     /**
      * 新增系统品牌
@@ -259,11 +259,11 @@ public interface IBackgroundService {
      * 修改管理员信息
      *
      * @param admin
-     * @param remoteAddr
+     * @param ip
      * @param admin1
      * @return
      */
-    boolean updateAdminMsg(Admin admin, String remoteAddr, Admin admin1);
+    boolean updateAdminMsg(Admin admin, String ip, Admin admin1);
 
     /**
      * 退出登录
@@ -275,18 +275,84 @@ public interface IBackgroundService {
 
     /**
      * 删除操作日志
+     *
      * @param ids
      * @param admin
      * @return
      */
-    boolean batchOperationLog(String[] ids, Admin admin,String ip);
+    boolean batchOperationLog(String[] ids, Admin admin, String ip);
 
     /**
      * 导出用户数据
+     *
+     * @param vo
+     * @param admin
+     * @param ip
+     * @return
+     */
+    String exportUsers(ExportUsersVO vo, Admin admin, String ip);
+
+    /**
+     * 批量启用用户
+     *
+     * @param admin
+     * @param ids
+     * @param ip
+     * @return
+     */
+    boolean batchlineUsers(Admin admin, String[] ids, String ip, String status);
+
+    /**
+     * 批量删除用户
+     *
+     * @param ids
+     * @param admin
+     * @param ip
+     * @return
+     */
+    boolean batchDeleteUsers(String[] ids, Admin admin, String ip);
+
+    /**
+     * 查询消息设置
+     *
+     * @return
+     */
+    Object searchMessageConf();
+
+    /**
+     * 编辑消息类型是否发送
+     *
+     * @param type
+     * @param id
+     * @param admin
+     * @param ip
+     * @return
+     */
+    boolean updateMessageConfSendOrNo(int type, String id, Admin admin, String ip);
+
+    /**
+     * 编辑消息内容
+     *
+     * @param messageConf
+     * @param admin
+     * @param ip
+     * @return
+     */
+    boolean updateMessageConfInstationContext(int type, MessageConf messageConf, Admin admin, String ip);
+
+    /**
+     * 根据用户手机号发送消息
+     *
      * @param vo
      * @param admin
      * @param remoteAddr
      * @return
      */
-    String exportUsers(ExportUsersVO vo, Admin admin, String remoteAddr);
+    boolean sendMessageForUsersPhone(SendSystemMessageVO vo, Admin admin, String remoteAddr);
+
+    /**
+     * 查询商品头部的商品数量
+     * @return
+     */
+    Object searchHeadProductsNumber();
 }

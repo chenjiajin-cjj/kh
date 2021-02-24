@@ -13,12 +13,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 经销商、供应商消息
+ */
 @Service
 public class MessageServiceImp implements IMessageService {
 
@@ -31,7 +33,9 @@ public class MessageServiceImp implements IMessageService {
     /**
      * 初始化信息列表
      *
-     * @param title
+     * @param title    消息标签
+     * @param pagePars 分页参数对象
+     * @param userId   用户id
      * @return
      */
     @Override
@@ -45,7 +49,7 @@ public class MessageServiceImp implements IMessageService {
     /**
      * 标记为已读
      *
-     * @param id
+     * @param id 消息id
      * @return
      */
     @Override
@@ -60,7 +64,7 @@ public class MessageServiceImp implements IMessageService {
     /**
      * 查询用户有多少条未读记录
      *
-     * @param id
+     * @param id 消息id
      * @return
      */
     @Override
@@ -71,7 +75,7 @@ public class MessageServiceImp implements IMessageService {
     /**
      * 查询消息中心标签
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -79,11 +83,11 @@ public class MessageServiceImp implements IMessageService {
         List<Object> list = new ArrayList<>();
         BaseType.Message[] all = BaseType.Message.values();
         for (int i = 0; i < all.length; i++) {
-            Map<String,Object> map = new HashMap<>();
-            map.put("name",all[i].getMsg());
-            map.put("title",all[i].getCode());
-            long count = messagesSet.Where("(title=?)and(receiveId=?)and(status=?)",all[i].getCode(),user.getId(),BaseType.Status.NO.getCode()).Count();
-            map.put("count",count);
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", all[i].getMsg());
+            map.put("title", all[i].getCode());
+            long count = messagesSet.Where("(title=?)and(receiveId=?)and(status=?)", all[i].getCode(), user.getId(), BaseType.Status.NO.getCode()).Count();
+            map.put("count", count);
             list.add(map);
         }
         return list;
@@ -91,19 +95,20 @@ public class MessageServiceImp implements IMessageService {
 
     /**
      * 查询头部未读消息数
-     * @param user
+     *
+     * @param user 用户对象
      * @return
      */
     @Override
     public Object checkHeadMessage(User user) {
-        Map<String,Object> map = new HashMap<>();
-        long message = messagesSet.Where("(receiveId=?)and(status=?)",user.getId(),BaseType.Status.NO.getCode()).Count();
+        Map<String, Object> map = new HashMap<>();
+        long message = messagesSet.Where("(receiveId=?)and(status=?)", user.getId(), BaseType.Status.NO.getCode()).Count();
         long friend = friendsSet.Where("(friendId=?)and(status=?)", user.getId(), BaseType.Consent.BASE.getCode()).Count();
-        map.put("message",message);
-        map.put("friend",friend);
-        if(BaseType.UserType.FACTORY.getCode().equals(user.getType())){
+        map.put("message", message);
+        map.put("friend", friend);
+        if (BaseType.UserType.FACTORY.getCode().equals(user.getType())) {
 
-        }else{
+        } else {
 
         }
         return map;
@@ -111,12 +116,13 @@ public class MessageServiceImp implements IMessageService {
 
     /**
      * 删除消息
-     * @param id
+     *
+     * @param id 消息id
      * @return
      */
     @Override
     public boolean delete(String id) {
-        if(StringUtils.isEmpty(id)){
+        if (StringUtils.isEmpty(id)) {
             throw new OtherExcetion("请选择要删除的消息");
         }
         return messagesSet.Delete(id) > 0;

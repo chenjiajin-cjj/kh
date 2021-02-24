@@ -12,12 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
-
-
 import io.framecore.Mongodb.Set;
 
 import java.util.Hashtable;
-
 
 @Repository(value = "SaleGoodsSet")
 @Scope(value = "prototype")
@@ -69,20 +66,12 @@ public class SaleGoodsSet extends Set<SaleGoods> {
         for (int i = 0; i < data.rows.size(); i++) {
             SaleGoods a = data.rows.get(i);
             Product product = productSet.Get(a.getProductId());
-            if(null == product || !BaseType.Status.YES.getCode().equals(product.getIllegal())){
+            if (null == product || !BaseType.Status.YES.getCode().equals(product.getIllegal())) {
                 continue;
             }
             if (null != a.getPrice() && a.getPrice() > 0) {
                 product.setSupplyPriceTaxNo(a.getPrice());
                 product.setSupplyPriceTax(a.getPriceTax());
-            } else {
-
-            }
-            if (StringUtils.isNotEmpty(product.getFactoryId())) {
-                User factory = userSet.Get(product.getFactoryId());
-                if (null != factory && StringUtils.isNotEmpty(factory.getCompanyName())) {
-                    a.setCName(factory.getCompanyName());
-                }
             }
             a.setAuthentication(BaseType.Status.YES.getCode().equals(saler.getAuth()));
             Category category = categorySet.Get(product.getCategoryCode());
@@ -95,10 +84,20 @@ public class SaleGoodsSet extends Set<SaleGoods> {
             if (null != brand && StringUtils.isNotEmpty(brand.getName())) {
                 brandName = brand.getName();
             }
-            String classifyName = "无";
-            Classify classify = classifySet.Get(a.getClassifyId());
-            if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
-                classifyName = classify.getName();
+            String classifyName = "";
+            String[] classifyIds = product.getClassifyId().split(",");
+            if (classifyIds.length == 0) {
+                classifyName = "无";
+            }
+            for (int j = 0; j < classifyIds.length; j++) {
+                Classify classify = classifySet.Get(classifyIds[j]);
+                if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
+                    if (j == classifyIds.length - 1) {
+                        classifyName += classify.getName();
+                    } else {
+                        classifyName += classify.getName() + ",";
+                    }
+                }
             }
             product.setClassifyName(classifyName);
             product.setCategoryName(categoryName);
@@ -159,6 +158,14 @@ public class SaleGoodsSet extends Set<SaleGoods> {
                 }
                 case "name": {
                     values.add(ExpCal.Analysis("name like?", where.get(key).toString()));
+                    break;
+                }
+                case "illegal": {
+                    values.add(ExpCal.Analysis("illegal=?", where.get(key).toString()));
+                    break;
+                }
+                case "classifyId": {
+                    values.add(ExpCal.Analysis("classifyId like?", where.get(key).toString()));
                     break;
                 }
             }

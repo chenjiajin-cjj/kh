@@ -1,16 +1,12 @@
 package io.hk.webApp.Service.Imp;
 
-
-import cn.hutool.core.date.DateUtil;
-import io.framecore.Aop.Holder;
 import io.framecore.Frame.PageData;
-import io.framecore.Frame.Result;
 import io.framecore.Tool.Md5Help;
-import io.framecore.redis.CacheHelp;
 import io.hk.webApp.DataAccess.AuthApplySet;
-import io.hk.webApp.DataAccess.PhoneMsgSet;
+import io.hk.webApp.DataAccess.ProductSet;
 import io.hk.webApp.DataAccess.UserSet;
 import io.hk.webApp.Domain.AuthApply;
+import io.hk.webApp.Domain.Product;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IUserService;
 import io.hk.webApp.Tools.BaseType;
@@ -22,26 +18,27 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.*;
 
+/**
+ * 用户
+ */
 @Service
 public class UserServiceImp implements IUserService {
 
     @Autowired
     private UserSet userSet;
 
-
-    @Autowired
-    private PhoneMsgSet phoneMsgSet;
-
     @Autowired
     private AuthApplySet authApplySet;
+
+    @Autowired
+    private ProductSet productSet;
 
     /**
      * 注册
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -64,7 +61,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 用户登录
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -76,6 +73,7 @@ public class UserServiceImp implements IUserService {
      * 修改密码
      *
      * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -94,7 +92,7 @@ public class UserServiceImp implements IUserService {
      * 修改手机号
      *
      * @param vo
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -117,7 +115,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 退出
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -129,7 +127,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 忘记密码
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -147,7 +145,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 添加子账号
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -174,8 +172,8 @@ public class UserServiceImp implements IUserService {
     /**
      * 查询子账号列表
      *
-     * @param user
-     * @param pagePars
+     * @param user     用户对象
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -195,7 +193,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 修改子账号
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -212,7 +210,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 删除子账号
      *
-     * @param id
+     * @param id 用户id
      * @return
      */
     @Override
@@ -226,7 +224,7 @@ public class UserServiceImp implements IUserService {
     /**
      * 绑定手机号
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -250,13 +248,17 @@ public class UserServiceImp implements IUserService {
     /**
      * 用户发送认证申请
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
     public boolean sendAuthApply(User user) {
         if (StringUtils.isEmpty(user.getCompanyName())) {
             throw new OtherExcetion("完善用户资料方可进行认证");
+        }
+        User info = userSet.Get(user.getId());
+        if (null != info && BaseType.Status.YES.getCode().equals(info.getAuth())) {
+            throw new OtherExcetion("已通过认证的用户无需重复操作");
         }
         AuthApply authApply = authApplySet.Where("(phone=?)and(status=?)", user.getPhone(), BaseType.Consent.PASS.getCode()).First();
         if (null != authApply) {
@@ -273,5 +275,25 @@ public class UserServiceImp implements IUserService {
         authApply.setStatus(BaseType.Consent.BASE.getCode());
         authApplySet.Add(authApply);
         return true;
+    }
+
+    /**
+     * 修改基本设置
+     *
+     * @param user 用户对象
+     * @return
+     */
+    @Override
+    public boolean updateUserMsg(User user) {
+        List<Product> products;
+        if (BaseType.UserType.FACTORY.getCode().equals(user.getType())) {
+            products = productSet.Where("factoryId=?", user.getId()).ToList();
+        } else {
+            products = productSet.Where("salerId=?", user.getId()).ToList();
+        }
+        products.forEach((a) -> {
+            a.setCname(StringUtils.isEmpty(user.getCompanyName()) ? "未知" : user.getCompanyName());
+        });
+        return user.updateById();
     }
 }

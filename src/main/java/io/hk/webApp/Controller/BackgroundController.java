@@ -1,24 +1,18 @@
 package io.hk.webApp.Controller;
 
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.sun.org.apache.regexp.internal.RE;
 import io.framecore.Frame.Result;
-import io.framecore.Mongodb.ExpCal;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Service.IBackgroundService;
 import io.hk.webApp.Service.IClassifyService;
 import io.hk.webApp.Service.IProductService;
 import io.hk.webApp.Tools.*;
-import io.hk.webApp.vo.DeleteOperationVO;
-import io.hk.webApp.vo.ExportUsersVO;
-import io.hk.webApp.vo.SendSystemMessageVO;
+import io.hk.webApp.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/v1/background")
@@ -182,18 +176,19 @@ public class BackgroundController {
      * 通过认证
      */
     @PostMapping("passAuth")
-    public Result passAuth(@RequestBody AuthApply authApply) {
+    public Result passAuth(@RequestBody PassAuthVO vo) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return backgroundService.passAuth(authApply, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return backgroundService.passAuth(vo, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
      * 删除申请记录
      */
-    @DeleteMapping("deleteAuthApply")
-    public Result deleteAuthApply(String id) {
+    @PostMapping("deleteAuthApply")
+    public Result deleteAuthApply(@RequestBody String json) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return backgroundService.deleteAuthApply(id, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        String[] ids = JSONObject.parseObject(json).getObject("ids", String[].class);
+        return backgroundService.deleteAuthApply(ids, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -232,8 +227,6 @@ public class BackgroundController {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
         return backgroundService.updatePlatform(admin, platform, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
-
-//----
 
     /**
      * 添加管理员
@@ -322,7 +315,7 @@ public class BackgroundController {
                 break;
             }
         }
-        return backgroundService.deleteOperationLog(vo, admin,httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return backgroundService.deleteOperationLog(vo, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -331,8 +324,8 @@ public class BackgroundController {
     @PostMapping("batchOperationLog")
     public Result batchOperationLog(@RequestBody String json) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        String [] ids = JSONObject.parseObject(json).getObject("ids",String [] .class);
-        return backgroundService.batchOperationLog(ids, admin,httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        String[] ids = JSONObject.parseObject(json).getObject("ids", String[].class);
+        return backgroundService.batchOperationLog(ids, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -348,10 +341,11 @@ public class BackgroundController {
     /**
      * 删除站内信消息
      */
-    @DeleteMapping("deleteSystemMessage")
-    public Result deleteSystemMessage(String _id) {
+    @PostMapping("deleteSystemMessage")
+    public Result deleteSystemMessage(@RequestBody String json) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return backgroundService.deleteSystemMessage(_id, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        String[] ids = JSONObject.parseObject(json).getObject("ids", String[].class);
+        return backgroundService.deleteSystemMessage(ids, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**
@@ -369,7 +363,7 @@ public class BackgroundController {
     @PostMapping("addClassify")
     public Result addClassify(@RequestBody Classify classify) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return iClassifyService.addClassify(classify,admin,httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.succeed("操作失败");
+        return iClassifyService.addClassify(classify, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.succeed("操作失败");
     }
 
     /**
@@ -378,44 +372,162 @@ public class BackgroundController {
     @PostMapping("updateClassify")
     public Result updateClassify(@RequestBody Classify classify) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return iClassifyService.updateClassify(classify,admin,httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.succeed("操作失败");
+        return iClassifyService.updateClassify(classify, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.succeed("操作失败");
     }
 
     /**
      * 查询分类
      */
     @GetMapping("searchClassifyOne")
-    public Result searchClassifyOne(String type,String fatherId){
+    public Result searchClassifyOne(String type, String fatherId) {
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
-        return Result.succeed(iClassifyService.searchClassifyOne(pagePars,type,fatherId));
+        return Result.succeed(iClassifyService.searchClassifyOne(pagePars, type, fatherId));
     }
+
     /**
      * 删除分类
      */
     @DeleteMapping("deleteClassify")
-    public Result deleteClassify(String id){
+    public Result deleteClassify(String id) {
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return iClassifyService.deleteClassify(admin,httpServletRequest.getRemoteAddr(),id) ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return iClassifyService.deleteClassify(admin, httpServletRequest.getRemoteAddr(), id) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
+
     /**
      * 用户导出到excel
      */
     @PostMapping("exportUsers")
-    public Result exportUsers(@RequestBody ExportUsersVO vo){
-        if(StringUtils.isEmpty(vo.getType())){
+    public Result exportUsers(@RequestBody ExportUsersVO vo) {
+        if (StringUtils.isEmpty(vo.getType())) {
             throw new OtherExcetion("请选择导出类型");
         }
         Admin admin = systemUtil.getAdmin(httpServletRequest);
-        return Result.succeed(backgroundService.exportUsers(vo,admin,httpServletRequest.getRemoteAddr()));
+        return Result.succeed(backgroundService.exportUsers(vo, admin, httpServletRequest.getRemoteAddr()));
     }
 
     /**
      * 后台查询商品
      */
     @GetMapping("searchProducts")
-    public Result searchProducts(){
+    public Result searchProducts() {
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
         return Result.succeed(iProductService.searchBackGroupProducts(pagePars));
     }
 
+    /**
+     * 违规上下架
+     */
+    @PostMapping("illegal")
+    public Result illegal(@RequestBody Product product) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return iProductService.illegal(product, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 修改商品
+     */
+    @PostMapping("updateProduct")
+    public Result updateProduct(@RequestBody Product product) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return iProductService.update(product, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 修改后台商品上架
+     */
+    @PostMapping("updateProductOnline")
+    public Result updateProductOnline(@RequestBody Product product) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return iProductService.updateProductOnline(product, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 修改商品标签
+     */
+    @PostMapping("updateProductTag")
+    public Result updateProductTag(@RequestBody UpdateProductTagVO vo) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return iProductService.updateProductTag(vo, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 批量启用用户
+     */
+    @PostMapping("batchOnlineUsers")
+    public Result batchOnlineUsers(@RequestBody String json) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        String[] ids = JSONObject.parseObject(json).getObject("ids", String[].class);
+        return backgroundService.batchlineUsers(admin, ids, httpServletRequest.getRemoteAddr(), BaseType.Status.YES.getCode()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 批量停用用户
+     */
+    @PostMapping("batchDownlineUsers")
+    public Result batchDownlineUsers(@RequestBody String json) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        String[] ids = JSONObject.parseObject(json).getObject("ids", String[].class);
+        return backgroundService.batchlineUsers(admin, ids, httpServletRequest.getRemoteAddr(), BaseType.Status.NO.getCode()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 查询消息设置
+     */
+    @GetMapping("searchMessageConf")
+    public Result searchMessageConf() {
+        return Result.succeed(backgroundService.searchMessageConf());
+    }
+
+    /**
+     * 站内消息是否发送
+     */
+    @PostMapping("updateMessageConfInstation")
+    public Result updateMessageConfInstation(@RequestBody BaseVO vo) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return backgroundService.updateMessageConfSendOrNo(1, vo.getId(), admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 小程序消息是否发送
+     */
+    @PostMapping("updateMessageConfSmall")
+    public Result updateMessageConfSmall(@RequestBody BaseVO vo) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return backgroundService.updateMessageConfSendOrNo(0, vo.getId(), admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 编辑站内消息内容
+     */
+    @PostMapping("updateMessageConfInstationContext")
+    public Result updateMessageConfInstationContext(@RequestBody MessageConf messageConf) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return backgroundService.updateMessageConfInstationContext(1, messageConf, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 编辑小程序消息内容
+     */
+    @PostMapping("updateMessageConfSmallContext")
+    public Result updateMessageConfSmallContext(@RequestBody MessageConf messageConf) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return backgroundService.updateMessageConfInstationContext(0, messageConf, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 根据用户手机号发送消息
+     */
+    @PostMapping("sendMessageForUsersPhone")
+    public Result sendMessageForUsersPhone(@RequestBody SendSystemMessageVO vo) {
+        Admin admin = systemUtil.getAdmin(httpServletRequest);
+        return backgroundService.sendMessageForUsersPhone(vo, admin, httpServletRequest.getRemoteAddr()) ? Result.succeed("操作成功") : Result.failure("操作失败");
+    }
+
+    /**
+     * 查询商品头部的商品数量
+     */
+    @GetMapping("searchHeadProductsNumber")
+    public Result searchHeadProductsNumber() {
+        return Result.succeed(backgroundService.searchHeadProductsNumber());
+    }
 }

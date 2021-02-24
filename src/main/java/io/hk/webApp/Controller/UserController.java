@@ -1,12 +1,9 @@
 package io.hk.webApp.Controller;
 
 import io.framecore.Frame.Result;
-import io.framecore.redis.CacheHelp;
 import io.hk.webApp.DataAccess.AuthSet;
-import io.hk.webApp.DataAccess.LoginLogSet;
 import io.hk.webApp.DataAccess.PhoneMsgSet;
 import io.hk.webApp.Domain.Auth;
-import io.hk.webApp.Domain.AuthApply;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IUserService;
 import io.hk.webApp.Tools.*;
@@ -16,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.attribute.standard.MediaSize;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -171,7 +167,7 @@ public class UserController {
         user.setPhone(user1.getPhone());
         user.setLoginKey(user1.getLoginKey());
         user.setType(user1.getType());
-        return user.updateById() ? Result.succeed("操作成功") : Result.failure("操作失败");
+        return iUserService.updateUserMsg(user) ? Result.succeed("操作成功") : Result.failure("操作失败");
     }
 
     /**

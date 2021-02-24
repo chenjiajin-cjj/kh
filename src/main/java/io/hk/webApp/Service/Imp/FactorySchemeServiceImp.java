@@ -1,6 +1,5 @@
 package io.hk.webApp.Service.Imp;
 
-import com.alibaba.fastjson.JSONObject;
 import io.framecore.Frame.PageData;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
@@ -17,13 +16,15 @@ import io.hk.webApp.vo.FactorySchemeSubmissionVO;
 import io.hk.webApp.vo.FactorySchemeUpdateMoneyVO;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
-import org.bson.json.JsonWriterSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 供应商方案
+ */
 @Service
 public class FactorySchemeServiceImp implements IFactorySchemeService {
 
@@ -45,8 +46,8 @@ public class FactorySchemeServiceImp implements IFactorySchemeService {
     /**
      * 展示方案列表
      *
-     * @param userId
-     * @param pagePars
+     * @param userId   用户id
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -64,7 +65,8 @@ public class FactorySchemeServiceImp implements IFactorySchemeService {
     /**
      * 删除方案
      *
-     * @param id
+     * @param id     方案id
+     * @param userId 用户id
      * @return
      */
     @Override
@@ -94,6 +96,7 @@ public class FactorySchemeServiceImp implements IFactorySchemeService {
      * 提报
      *
      * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -153,9 +156,9 @@ public class FactorySchemeServiceImp implements IFactorySchemeService {
         List<Document> finalList = list;
         List<FactorySchemeProductDTO> productIds = new ArrayList<>(vo.getProductIds());
         for (int i = 0; i < list.size(); i++) {
-            FactorySchemeProductDTO dto = BsonUtil.toBean(list.get(i),FactorySchemeProductDTO.class);
+            FactorySchemeProductDTO dto = BsonUtil.toBean(list.get(i), FactorySchemeProductDTO.class);
             for (int j = 0; j < productIds.size(); j++) {
-                if(dto.getProductIds().equals(productIds.get(j).getProductIds())){
+                if (dto.getProductIds().equals(productIds.get(j).getProductIds())) {
                     vo.getProductIds().remove(productIds.get(j));
                 }
             }
@@ -174,7 +177,6 @@ public class FactorySchemeServiceImp implements IFactorySchemeService {
         factoryScheme.setFactoryProductIds(finalList);
         factoryScheme.setStatus(BaseType.Status.YES.getCode());
         factoryScheme.setNumber(finalList.size() + "");
-
         {
             //完成提报后发送消息提醒经销商
             Messages messages = new Messages();
@@ -189,14 +191,14 @@ public class FactorySchemeServiceImp implements IFactorySchemeService {
             messages.setData(factoryScheme.getId());
             messagesSet.Add(messages);
         }
-
         return factoryScheme.updateById();
     }
 
     /**
      * 查询方案详情
      *
-     * @param factorySchemeId
+     * @param factorySchemeId 供应商方案id
+     * @param pagePars        分页参数对象
      * @return
      */
     @Override

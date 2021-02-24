@@ -2,7 +2,6 @@ package io.hk.webApp.task;
 
 import io.hk.webApp.DataAccess.SchemeSet;
 import io.hk.webApp.Domain.Scheme;
-import io.hk.webApp.Tools.AccTokenAop;
 import io.hk.webApp.Tools.BaseType;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;

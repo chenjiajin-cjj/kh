@@ -1,24 +1,22 @@
 package io.hk.webApp.DataAccess;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import io.framecore.Mongodb.ExpCal;
 import io.framecore.Mongodb.IMongoQuery;
-import io.framecore.Mongodb.Query;
 import io.hk.webApp.Domain.*;
-import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
-import io.hk.webApp.Tools.TablePagePars;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
-import io.framecore.Aop.Holder;
 import io.framecore.Frame.PageData;
-import io.framecore.Frame.Result;
 import io.framecore.Mongodb.Set;
 
 @Repository(value = "ProductSet")
@@ -86,24 +84,34 @@ public class ProductSet extends Set<Product> {
             if (null != brand && StringUtils.isNotEmpty(brand.getName())) {
                 brandName = brand.getName();
             }
-            String classifyName = "无";
-            Classify classify = classifySet.Get(a.getClassifyId());
-            if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
-                classifyName = classify.getName();
+            String classifyName = "";
+            String[] classifyIds = a.getClassifyId().split(",");
+            if (classifyIds.length == 0) {
+                classifyName = "无";
             }
-            if (StringUtils.isNotEmpty(a.getSalerId())) {
-                User saler = userSet.Get(a.getSalerId());
-                if (null != saler && StringUtils.isNotEmpty(saler.getCompanyName())) {
-                    a.setCname(saler.getCompanyName());
+            for (int i = 0; i < classifyIds.length; i++) {
+                Classify classify = classifySet.Get(classifyIds[i]);
+                if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
+                    if (i == classifyIds.length - 1) {
+                        classifyName += classify.getName();
+                    } else {
+                        classifyName += classify.getName() + ",";
+                    }
                 }
-            } else {
-                if (null == factory && StringUtils.isNotEmpty(a.getSalerId())) {
-                    factory = userSet.Get(a.getSalerId());
-                } else {
-                    factory = userSet.Get(a.getFactoryId());
-                }
-                a.setCname(factory.getCompanyName());
             }
+//            if (StringUtils.isNotEmpty(a.getSalerId())) {
+//                User saler = userSet.Get(a.getSalerId());
+//                if (null != saler && StringUtils.isNotEmpty(saler.getCompanyName())) {
+//                    a.setCname(saler.getCompanyName());
+//                }
+//            } else {
+//                if (null == factory && StringUtils.isNotEmpty(a.getSalerId())) {
+//                    factory = userSet.Get(a.getSalerId());
+//                } else {
+//                    factory = userSet.Get(a.getFactoryId());
+//                }
+//                a.setCname(factory.getCompanyName());
+//            }
             a.setClassifyName(classifyName);
             a.setCategoryName(categoryName);
             a.setBrandName(brandName);
@@ -122,7 +130,6 @@ public class ProductSet extends Set<Product> {
     private BasicDBObject buildWhere(Hashtable<String, Object> where) {
         BasicDBObject whereBson = new BasicDBObject();
         BasicDBList values = new BasicDBList();
-        values.add(ExpCal.Analysis("illegal=?", BaseType.Status.YES.getCode()));
         if (null == where || where.size() == 0) {
             whereBson.append("$and", values);
             return whereBson;
@@ -169,9 +176,38 @@ public class ProductSet extends Set<Product> {
                     values.add(ExpCal.Analysis("shield=?", where.get(key).toString()));
                     break;
                 }
+                case "illegal": {
+                    values.add(ExpCal.Analysis("illegal=?", where.get(key).toString()));
+                    break;
+                }
+                case "cname": {
+                    values.add(ExpCal.Analysis("cname like?", where.get(key).toString()));
+                    break;
+                }
+                case "classifyId": {
+                    values.add(ExpCal.Analysis("classifyId like?", where.get(key).toString()));
+                    break;
+                }
+                case "status": {
+                    values.add(ExpCal.Analysis("status=?", where.get(key).toString()));
+                    break;
+                }
             }
         }
         whereBson.append("$and", values);
         return whereBson;
+    }
+
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("a", "b", "c", "d");
+        String name = "";
+        for (int i = 0; i < list.size(); i++) {
+            if (i == list.size() - 1) {
+                name += list.get(i);
+            } else {
+                name += list.get(i) + ",";
+            }
+        }
+        System.out.println(name);
     }
 }

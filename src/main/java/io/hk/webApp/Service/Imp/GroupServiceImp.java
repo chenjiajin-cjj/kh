@@ -15,9 +15,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.List;
 
+/**
+ * 供应商分组
+ */
 @Service
 public class GroupServiceImp implements IGroupService {
 
@@ -33,7 +35,7 @@ public class GroupServiceImp implements IGroupService {
     /**
      * 添加分组
      *
-     * @param group
+     * @param group 分组对象
      * @return
      */
     @Override
@@ -42,12 +44,12 @@ public class GroupServiceImp implements IGroupService {
         if (StringUtils.isAnyEmpty(group.getName())) {
             throw new OtherExcetion("请输入分组名");
         }
-        if(null == info){
+        if (null == info) {
             group.setSort(1);
-        }else{
+        } else {
             group.setSort((null == info.getSort() ? 0 : info.getSort()) + 1);
         }
-        group.setNumber((long)0);
+        group.setNumber((long) 0);
         groupSet.Add(group);
         return true;
     }
@@ -55,7 +57,7 @@ public class GroupServiceImp implements IGroupService {
     /**
      * 重命名分组
      *
-     * @param group
+     * @param group 分组对象
      * @return
      */
     @Override
@@ -75,7 +77,7 @@ public class GroupServiceImp implements IGroupService {
     /**
      * 删除分组
      *
-     * @param id
+     * @param id 分组id
      * @return
      */
     @Override
@@ -131,14 +133,15 @@ public class GroupServiceImp implements IGroupService {
     /**
      * 展示分组及其下级信息
      *
+     * @param user 用户对象
      * @return
      */
     @Override
     public PageData<Group> search(User user) {
-        String factoryId = null;
-        if(StringUtils.isEmpty(user.getFatherId())){
+        String factoryId;
+        if (StringUtils.isEmpty(user.getFatherId())) {
             factoryId = user.getId();
-        }else{
+        } else {
             factoryId = user.getFatherId();
         }
         PageData<Group> pageData = new PageData<>();
@@ -146,8 +149,8 @@ public class GroupServiceImp implements IGroupService {
         long count = groupSet.Where("factoryId=?", factoryId).Count();
         list.forEach((a) -> {
             List<Category> sonList = categorySet.Where("fatherId=?", a.getId()).OrderBy("sort").ToList();
-            sonList.forEach((b)->{
-                long number = productSet.Where("categoryCode=?",b.getId()).Count();
+            sonList.forEach((b) -> {
+                long number = productSet.Where("categoryCode=?", b.getId()).Count();
                 b.setNumber(number);
                 a.setNumber((null == a.getNumber() ? 0 : a.getNumber()) + b.getNumber());
             });
@@ -161,7 +164,7 @@ public class GroupServiceImp implements IGroupService {
     /**
      * 隐藏或显示分组
      *
-     * @param id
+     * @param id 分组id
      * @return
      */
     @Override

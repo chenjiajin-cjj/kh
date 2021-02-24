@@ -1,6 +1,5 @@
 package io.hk.webApp.test;
 
-import com.mongodb.BasicDBObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

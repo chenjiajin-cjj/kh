@@ -3,11 +3,11 @@ package io.hk.webApp.Domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
-import io.hk.webApp.DataAccess.AdminSet;
-import io.hk.webApp.DataAccess.CategorySet;
 import io.hk.webApp.DataAccess.ClassifySet;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 
 /**
  * 分类
@@ -94,6 +94,18 @@ public class Classify extends ViewStore {
     @JsonProperty(value = "productNumber")
     public void setProductNumber(Long productNumber) {
         set("productNumber", productNumber);
+    }
+
+
+    /* 下级分类 展示用 sons*/
+    @JsonProperty(value = "sons")
+    public List<Classify> getSons() {
+        return (List<Classify>) get("sons");
+    }
+
+    @JsonProperty(value = "sons")
+    public void setSons(List<Classify> sons) {
+        set("sons", sons);
     }
 
 

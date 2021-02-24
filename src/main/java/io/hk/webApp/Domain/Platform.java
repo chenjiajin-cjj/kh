@@ -7,8 +7,6 @@ import io.hk.webApp.DataAccess.PlatformSet;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.print.attribute.standard.MediaSize;
-
 public class Platform extends ViewStore {
 
     // _id

@@ -5,12 +5,10 @@ import com.mongodb.BasicDBObject;
 import io.framecore.Frame.PageData;
 import io.framecore.Mongodb.ExpCal;
 import io.framecore.Mongodb.IMongoQuery;
-import io.hk.webApp.Domain.Product;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 

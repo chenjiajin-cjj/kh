@@ -16,10 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * 商品分类
+ */
 @Service
 public class ClassifyServiceImp implements IClassifyService {
 
@@ -36,7 +40,9 @@ public class ClassifyServiceImp implements IClassifyService {
     /**
      * 添加分类
      *
-     * @param classify
+     * @param classify 分类对象
+     * @param ip       ip
+     * @param admin    管理员对象
      * @return
      */
     @Override
@@ -59,7 +65,9 @@ public class ClassifyServiceImp implements IClassifyService {
     /**
      * 修改分类
      *
-     * @param classify
+     * @param classify 分类对象
+     * @param ip       ip
+     * @param admin    管理员对象
      * @return
      */
     @Override
@@ -74,7 +82,9 @@ public class ClassifyServiceImp implements IClassifyService {
     /**
      * 删除分类
      *
-     * @param id
+     * @param id    分类id
+     * @param ip    ip
+     * @param admin 管理员对象
      * @return
      */
     @Override
@@ -89,7 +99,7 @@ public class ClassifyServiceImp implements IClassifyService {
     /**
      * 分页查询分类列表
      *
-     * @param pagePars
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -109,13 +119,18 @@ public class ClassifyServiceImp implements IClassifyService {
      */
     @Override
     public Object searchClassifyName() {
-        return classifySet.Where("status=?", BaseType.Status.YES.getCode()).OrderByDesc("_ctime").ToList();
+        List<Classify> fathers = classifySet.Where("(status=?)and(lv=?)", BaseType.Status.YES.getCode(), "1").OrderBy("sort").ToList();
+        fathers.forEach(a -> {
+            List<Classify> sons = classifySet.Where("(status=?)and(lv=?)and(fatherId=?)", BaseType.Status.YES.getCode(), "2", a.getId()).OrderBy("sort").ToList();
+            a.setSons(sons);
+        });
+        return fathers;
     }
 
     /**
      * 查询后台分类
      *
-     * @param pagePars
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -127,18 +142,18 @@ public class ClassifyServiceImp implements IClassifyService {
         List<Classify> list;
         long count;
         if ("1".equals(type)) {
-            list = classifySet.Where("lv=?", type).OrderBy("sort").ToList();
+            list = classifySet.Where("lv=?", type).OrderByDesc("sort").ToList();
             count = classifySet.Where("lv=?", type).Count();
         } else {
             if (StringUtils.isEmpty(fatherId)) {
                 throw new OtherExcetion("请选择上级");
             }
-            list = classifySet.Where("(lv=?)and(fatherId=?)", type, fatherId).OrderBy("sort").ToList();
+            list = classifySet.Where("(lv=?)and(fatherId=?)", type, fatherId).OrderByDesc("sort").ToList();
             count = classifySet.Where("(lv=?)and(fatherId=?)", type, fatherId).Count();
         }
         list.forEach((a) -> {
             //查询商品数量
-            long number = productSet.Where("classifyId like?",a.getId()).Count();
+            long number = productSet.Where("classifyId like?", a.getId()).Count();
             a.setProductNumber(number);
         });
         pageData.rows = list;
@@ -149,9 +164,9 @@ public class ClassifyServiceImp implements IClassifyService {
     /**
      * 添加操作记录
      *
-     * @param admin
-     * @param ip
-     * @param content
+     * @param admin   管理员对象
+     * @param ip      ip
+     * @param content 操作内容
      */
     public void addOperationLog(Admin admin, String ip, String content) {
         OperationLog operationLog = new OperationLog();
@@ -164,5 +179,4 @@ public class ClassifyServiceImp implements IClassifyService {
         operationLog.setContent(content);
         operationLogSet.Add(operationLog);
     }
-
 }

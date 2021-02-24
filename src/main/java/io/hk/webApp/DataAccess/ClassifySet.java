@@ -1,11 +1,7 @@
 package io.hk.webApp.DataAccess;
 
 import io.framecore.Mongodb.Set;
-import io.hk.webApp.Domain.Category;
 import io.hk.webApp.Domain.Classify;
-import io.hk.webApp.Tools.BaseType;
-import io.hk.webApp.Tools.OtherExcetion;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 

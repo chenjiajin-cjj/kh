@@ -5,44 +5,48 @@ import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Service.IProductService;
 import io.hk.webApp.Tools.*;
-import io.hk.webApp.dto.ShareProduceDTO;
-import io.hk.webApp.vo.ProductShareVO;
+import io.hk.webApp.Tools.iparea.IPSeekers;
+import io.hk.webApp.vo.UpdateProductTagVO;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.BSONObject;
-import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 供应商商品
+ */
 @Service
 public class ProductServiceImp implements IProductService {
 
     @Autowired
     private ProductSet productSet;
+
     @Autowired
     private GroupSet groupSet;
+
     @Autowired
     private CategorySet categorySet;
+
     @Autowired
     private BrandSet brandSet;
-    @Autowired
-    private ShareProducesSet shareProducesSet;
+
     @Autowired
     private SaleGoodsSet saleGoodsSet;
+
     @Autowired
     private ClassifySet classifySet;
+
     @Autowired
-    private AuthSet authSet;
+    private OperationLogSet operationLogSet;
 
     /**
      * 添加商品
      *
-     * @param product
+     * @param product 供应商商品对象
      * @return
      */
     @Override
@@ -96,22 +100,24 @@ public class ProductServiceImp implements IProductService {
     /**
      * 列表查询
      *
-     * @param pagePars
+     * @param pagePars 分页参数对象
+     * @param factory  经销商用户对象
      * @return
      */
     @Override
     public PageData<Product> search(TablePagePars pagePars, User factory) {
         pagePars.Pars.put("shield", BaseType.Status.YES.getCode());
-        if(null != factory && StringUtils.isNotEmpty(factory.getId())){
+        if (null != factory && StringUtils.isNotEmpty(factory.getId())) {
             pagePars.Pars.put("factoryId", factory.getId());
         }
-        PageData<Product> pageData = productSet.search(pagePars.Pars, pagePars.PageSize, pagePars.PageIndex, pagePars.Order,factory);
+        PageData<Product> pageData = productSet.search(pagePars.Pars, pagePars.PageSize, pagePars.PageIndex, pagePars.Order, factory);
         return pageData;
     }
 
     /**
      * 查询首页列表的分组
      *
+     * @param factoryId 供应商id
      * @return
      */
     @Override
@@ -131,7 +137,7 @@ public class ProductServiceImp implements IProductService {
     /**
      * 列表查询商品页的品牌
      *
-     * @param id
+     * @param id 品牌id
      * @return
      */
     @Override
@@ -142,12 +148,13 @@ public class ProductServiceImp implements IProductService {
     /**
      * 修改商品
      *
-     * @param product
+     * @param product 供应商商品对象
+     * @param user    用户对象
      * @return
      */
     @Override
     public boolean update(Product product, User user) {
-        boolean result = false;
+        boolean result;
         try {
             result = product.updateProduct();
         } catch (Exception e) {
@@ -199,7 +206,7 @@ public class ProductServiceImp implements IProductService {
     /**
      * 屏蔽/取消屏蔽商品
      *
-     * @param productId
+     * @param productId 商品id
      * @return
      */
     @Override
@@ -218,7 +225,8 @@ public class ProductServiceImp implements IProductService {
     /**
      * 根据id查询单个商品
      *
-     * @param id
+     * @param id   商品id
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -245,17 +253,22 @@ public class ProductServiceImp implements IProductService {
         } else {
             product.setCategoryName("无");
         }
-        Classify classify = classifySet.Get(product.getClassifyId());
-        if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
-            product.setClassifyName(classify.getName());
-        } else {
-            product.setClassifyName("无");
+        String classifyName = "";
+        String[] classifyIds = product.getClassifyId().split(",");
+        if (classifyIds.length == 0) {
+            classifyName = "无";
         }
-        if (StringUtils.isNotEmpty(user.getCompanyName())) {
-            product.setCname(user.getCompanyName());
-        } else {
-            product.setCname("无");
+        for (int j = 0; j < classifyIds.length; j++) {
+            Classify classify = classifySet.Get(classifyIds[j]);
+            if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
+                if (j == classifyIds.length - 1) {
+                    classifyName += classify.getName();
+                } else {
+                    classifyName += classify.getName() + ",";
+                }
+            }
         }
+        product.setClassifyName(classifyName);
         if (StringUtils.isNotEmpty(user.getName())) {
             product.setPname(user.getName());
         } else {
@@ -273,7 +286,7 @@ public class ProductServiceImp implements IProductService {
     /**
      * 删除商品
      *
-     * @param id
+     * @param id 商品id
      * @return
      */
     @Override
@@ -293,12 +306,164 @@ public class ProductServiceImp implements IProductService {
 
     /**
      * 查询后台商品
-     * @param pagePars
+     *
+     * @param pagePars 分页查询参数对象
      * @return
      */
     @Override
     public Object searchBackGroupProducts(TablePagePars pagePars) {
-        return this.search(pagePars,null);
+        return this.search(pagePars, null);
     }
 
+    /**
+     * 违规上下架
+     *
+     * @param product 商品对象
+     * @param admin   管理员对象
+     * @param ip      ip
+     * @return
+     */
+    @Override
+    public boolean illegal(Product product, Admin admin, String ip) {
+        if (StringUtils.isEmpty(product.getId())) {
+            throw new OtherExcetion("请选择要操作的商品");
+        }
+        product = productSet.Get(product.getId());
+        if (null == product) {
+            throw new OtherExcetion("不存在的商品");
+        }
+        product.setIllegal(BaseType.Status.YES.getCode().equals(product.getIllegal()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+        List<SaleGoods> list = saleGoodsSet.Where("productId=?", product.getId()).ToList();
+        for (SaleGoods a : list) {
+            a.setIllegal(product.getIllegal());
+            a.updateById();
+        }
+        addOperationLog(admin, ip, "操作违规上下架商品");
+        return product.updateProduct();
+    }
+
+    /**
+     * 修改商品
+     *
+     * @param product 商品对象
+     * @param admin   管理员对象
+     * @param ip      ip
+     * @return
+     */
+    @Override
+    public boolean update(Product product, Admin admin, String ip) {
+        if (StringUtils.isEmpty(product.getId())) {
+            throw new OtherExcetion("请选择要修改的商品");
+        }
+        addOperationLog(admin, ip, "修改商品");
+        return product.updateProduct();
+    }
+
+    /**
+     * 修改后台商品上下架
+     *
+     * @param product 商品对象
+     * @param admin   管理员对象
+     * @param ip      ip
+     * @return
+     */
+    @Override
+    public boolean updateProductOnline(Product product, Admin admin, String ip) {
+        if (StringUtils.isEmpty(product.getId())) {
+            throw new OtherExcetion("请选择要修改的商品");
+        }
+        product = productSet.Get(product.getId());
+        if (null == product) {
+            throw new OtherExcetion("不存在的商品");
+        }
+        product.setStatus(BaseType.Status.YES.getCode().equals(product.getStatus()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+        String context = BaseType.Status.YES.getCode().equals(product.getStatus()) ? "修改商品上架" : "修改商品下架";
+        addOperationLog(admin, ip, context);
+        return product.updateProduct();
+    }
+
+    /**
+     * 修改商品标签
+     *
+     * @param vo
+     * @param admin 管理员对象
+     * @param ip    ip
+     * @return
+     */
+    @Override
+    public boolean updateProductTag(UpdateProductTagVO vo, Admin admin, String ip) {
+        if (StringUtils.isEmpty(vo.get_id())) {
+            throw new OtherExcetion("请选择要修改的商品");
+        }
+        Product product = productSet.Get(vo.get_id());
+        if (null == product) {
+            throw new OtherExcetion("不存在的商品");
+        }
+        boolean res = false;
+        String context = "";
+        switch (vo.getTagType()) {
+            case "1": {
+                product.setTagRec(BaseType.Status.YES.getCode().equals(product.getTagRec()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+                res = true;
+                context = "修改商品推荐标签";
+                break;
+            }
+            case "2": {
+                product.setTagHot(BaseType.Status.YES.getCode().equals(product.getTagHot()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+                res = true;
+                context = "修改商品热搜标签";
+                break;
+            }
+            case "3": {
+                product.setTagNew(BaseType.Status.YES.getCode().equals(product.getTagNew()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+                res = true;
+                context = "修改商品新品标签";
+                break;
+            }
+        }
+        if (StringUtils.isNotEmpty(product.getSalerId())) {
+            SaleGoods saleGoods = saleGoodsSet.Where("productId=?", product.getId()).First();
+            if (null != saleGoods) {
+                switch (vo.getTagType()) {
+                    case "1": {
+                        saleGoods.setTagRec(BaseType.Status.YES.getCode().equals(saleGoods.getTagRec()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+                        break;
+                    }
+                    case "2": {
+                        saleGoods.setTagHot(BaseType.Status.YES.getCode().equals(saleGoods.getTagHot()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+                        break;
+                    }
+                    case "3": {
+                        saleGoods.setTagNew(BaseType.Status.YES.getCode().equals(saleGoods.getTagNew()) ? BaseType.Status.NO.getCode() : BaseType.Status.YES.getCode());
+                        break;
+                    }
+                }
+                saleGoods.updateById();
+            }
+        }
+        if (res) {
+            addOperationLog(admin, ip, context);
+            return product.updateProduct();
+        }
+        return false;
+    }
+
+    /**
+     * 添加操作记录
+     *
+     * @param admin   管理员对象
+     * @param ip      ip
+     * @param content 操作内容
+     */
+    public void addOperationLog(Admin admin, String ip, String content) {
+        OperationLog operationLog = new OperationLog();
+        operationLog.setAccount(admin.getAccount());
+        operationLog.setIp(ip);
+        String addr = IPSeekers.getInstance().getAddress(ip);
+        operationLog.setAddr(StringUtils.isEmpty(addr) ? "未知" : addr);
+        operationLog.setName(admin.getName());
+        operationLog.setCtime(System.currentTimeMillis());
+        operationLog.setContent(content);
+        operationLogSet.Add(operationLog);
+    }
 }

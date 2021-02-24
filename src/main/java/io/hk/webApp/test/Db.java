@@ -2,7 +2,6 @@ package io.hk.webApp.test;
 
 import io.framecore.Mongodb.Set;
 import io.hk.webApp.DataAccess._db;
-import io.hk.webApp.Domain.User;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 

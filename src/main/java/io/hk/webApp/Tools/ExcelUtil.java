@@ -26,13 +26,12 @@ public class ExcelUtil {
         // 创建一个Excel文件
         HSSFWorkbook workbook = new HSSFWorkbook();
         // 创建一个工作表
-        HSSFSheet sheet = workbook.createSheet("学生表一");
+        HSSFSheet sheet = workbook.createSheet("用户数据表");
         // 添加表头行
         HSSFRow hssfRow = sheet.createRow(0);
         // 设置单元格格式居中
         HSSFCellStyle cellStyle = workbook.createCellStyle();
         cellStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);
-
         // 添加表头内容
         HSSFCell headCell = hssfRow.createCell(0);
         headCell.setCellValue("用户账号");
@@ -95,8 +94,6 @@ public class ExcelUtil {
             cell = hssfRow.createCell(6);
             cell.setCellValue(userDTO.getStatus());
             cell.setCellStyle(cellStyle);
-
-
         }
         String name = IdUtil.simpleUUID() + ".xls";
         // 保存Excel文件
@@ -107,7 +104,6 @@ public class ExcelUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return name;
     }
 

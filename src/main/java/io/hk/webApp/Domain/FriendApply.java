@@ -3,7 +3,6 @@ package io.hk.webApp.Domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
-import io.hk.webApp.DataAccess.FactorySchemeSet;
 import io.hk.webApp.DataAccess.FriendApplySet;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;

@@ -1,6 +1,5 @@
 package io.hk.webApp.vo;
 
-
 public class DeleteOperationVO {
 
     private Long beginTime;

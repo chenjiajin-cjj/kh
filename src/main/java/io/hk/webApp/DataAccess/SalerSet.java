@@ -2,11 +2,9 @@ package io.hk.webApp.DataAccess;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
-
 import io.framecore.Frame.Result;
 import io.framecore.Mongodb.Set;
 import io.hk.webApp.Domain.Saler;
- 
 
 @Repository(value="SalerSet")
 @Scope(value="prototype")

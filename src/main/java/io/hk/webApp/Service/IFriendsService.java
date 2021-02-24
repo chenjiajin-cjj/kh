@@ -1,7 +1,6 @@
 package io.hk.webApp.Service;
 
 import io.framecore.Frame.PageData;
-import io.framecore.Frame.Result;
 import io.hk.webApp.Domain.FriendApply;
 import io.hk.webApp.Domain.Friends;
 import io.hk.webApp.Domain.User;

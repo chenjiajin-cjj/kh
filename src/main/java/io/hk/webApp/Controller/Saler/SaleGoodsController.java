@@ -2,11 +2,11 @@ package io.hk.webApp.Controller.Saler;
 
 import io.framecore.Frame.PageData;
 import io.framecore.Frame.Result;
-import io.hk.webApp.Domain.Choose;
 import io.hk.webApp.Domain.Product;
 import io.hk.webApp.Domain.SaleGoods;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.ISaleGoodsService;
+import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
 import io.hk.webApp.Tools.TablePagePars;
@@ -49,9 +49,10 @@ public class SaleGoodsController {
     @PostMapping("addProduct")
     public Result addProduct(@RequestBody Product product) {
         User user = systemUtil.getUser(httpServletRequest);
-        if (null != user) {
-            product.setSalerId(user.getId());
+        if(StringUtils.isEmpty(user.getCompanyName())){
+            throw new OtherExcetion(-10,"完成基本设置后可操作");
         }
+        product.setCname(user.getCompanyName());
         return saleGoodsService.addProduct(product) ? Result.succeed("添加成功") : Result.failure("添加失败");
     }
 
@@ -65,6 +66,7 @@ public class SaleGoodsController {
     public Result search(String type) {
         User user = systemUtil.getUser(httpServletRequest);
         TablePagePars pagePars = new TablePagePars(httpServletRequest);
+        pagePars.Pars.put("illegal", BaseType.Status.YES.getCode());
         PageData<SaleGoods> pageData = saleGoodsService.search(pagePars, user, type);
         return Result.succeed(pageData);
     }

@@ -4,7 +4,6 @@ package io.hk.webApp.DataAccess;
 import io.framecore.Frame.PageData;
 import io.framecore.Mongodb.Set;
 import io.hk.webApp.Domain.FriendApply;
-import io.hk.webApp.Domain.Friends;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 

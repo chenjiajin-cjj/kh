@@ -1,10 +1,8 @@
 package io.hk.webApp.Service.Imp;
 
 import io.framecore.Frame.PageData;
-import io.framecore.Mongodb.ExpCal;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
-import io.hk.webApp.Service.IProductService;
 import io.hk.webApp.Service.ISaleGoodsService;
 import io.hk.webApp.Tools.*;
 import io.hk.webApp.dto.ShareProduceDTO;
@@ -14,9 +12,11 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
+/**
+ * 经销商商品
+ */
 @Service
 public class SaleGoodsServiceImp implements ISaleGoodsService {
 
@@ -25,9 +25,6 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
 
     @Autowired
     private SaleGoodsSet saleGoodsSet;
-
-    @Autowired
-    private IProductService productService;
 
     @Autowired
     private FriendsSet friendsSet;
@@ -45,18 +42,13 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     private ChooseSet chooseSet;
 
     @Autowired
-    private UserSet userSet;
-
-    @Autowired
-    private AuthSet authSet;
-
-    @Autowired
     private ClassifySet classifySet;
 
     /**
      * 经销商获得由供应商分享过来的商品
      *
      * @param vo
+     * @param salerId 经销商id
      * @return
      */
     @Override
@@ -97,6 +89,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
                 saleGoods.setCategoryCode(product.getCategoryCode());
                 saleGoods.setName(product.getName());
                 saleGoods.setClassifyId(product.getClassifyId());
+                saleGoods.setIllegal(BaseType.Status.YES.getCode());
                 saleGoodsSet.Add(saleGoods);
             } else {
                 {
@@ -132,7 +125,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 经销商添加自有商品
      *
-     * @param product
+     * @param product 商品对象
      * @return
      */
     @Override
@@ -205,8 +198,8 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 查询商品
      *
-     * @param pagePars
-     * @param type
+     * @param pagePars 分页参数对象
+     * @param type     1查供应商 2查经销商
      * @return
      */
     @Override
@@ -219,7 +212,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
      * 对自有商品进行上下架
      *
      * @param vo
-     * @param id
+     * @param id 经销商商品id
      * @return
      */
     @Override
@@ -240,7 +233,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
      * 修改自有商品
      *
      * @param vo
-     * @param salerId
+     * @param salerId 经销商id
      * @return
      */
     @Override
@@ -258,8 +251,8 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 删除商品
      *
-     * @param id
-     * @param salerId
+     * @param id      经销商商品id
+     * @param salerId 经销商id
      * @return
      */
     @Override
@@ -274,7 +267,8 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 根据id查询单个
      *
-     * @param id
+     * @param id   经销商商品
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -288,18 +282,27 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
             throw new OtherExcetion("不存在的商品");
         }
         Brand brand = brandSet.Get(product.getBrandId());
-        Classify classify = classifySet.Get(product.getClassifyId());
         if (null != brand && StringUtils.isNotEmpty(brand.getName())) {
             product.setBrandName(brand.getName());
         } else {
             product.setBrandName("无");
         }
-        if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
-            product.setClassifyName(classify.getName());
-        } else {
-            product.setClassifyName("无");
+        String classifyName = "";
+        String[] classifyIds = product.getClassifyId().split(",");
+        if (classifyIds.length == 0) {
+            classifyName = "无";
         }
-
+        for (int j = 0; j < classifyIds.length; j++) {
+            Classify classify = classifySet.Get(classifyIds[j]);
+            if (null != classify && StringUtils.isNotEmpty(classify.getName())) {
+                if (j == classifyIds.length - 1) {
+                    classifyName += classify.getName();
+                } else {
+                    classifyName += classify.getName() + ",";
+                }
+            }
+        }
+        product.setClassifyName(classifyName);
         if (StringUtils.isNotEmpty(user.getCompanyName())) {
             product.setCname(user.getCompanyName());
         } else {
@@ -323,7 +326,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 设为主题
      *
-     * @param id
+     * @param id 经销商商品id
      * @return
      */
     @Override
@@ -343,7 +346,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 查询所有合作厂商通过审核且未过期的所有品牌
      *
-     * @param salerId
+     * @param salerId 经销商id
      * @return
      */
     @Override
@@ -364,7 +367,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 查询合作厂商们的所有品牌 不重复
      *
-     * @param id
+     * @param id 用户id
      * @return
      */
     @Override
@@ -382,26 +385,23 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
                 }
             }
         }
-
         List<Brand> brandList = new ArrayList<>();
         list.forEach((a) -> {
             if ("1".equals(a.getPerpetual()) || a.getTime() >= System.currentTimeMillis()) {
                 brandList.add(a);
             }
         });
-
         return brandList;
     }
 
     /**
      * 查询分享的商品列表
      *
-     * @param id
+     * @param id 经销商id
      * @return
      */
     @Override
     public Object searchShare(TablePagePars pagePars, String id) {
-
         List<ShareProduces> shareProduces = shareProducesSet.Where("salerId=?", id).Limit(pagePars.PageSize, pagePars.PageIndex).OrderByDesc("_ctime").ToList();
         long count = shareProducesSet.Where("salerId=?", id).Count();
 
@@ -424,7 +424,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 查询分享过来的商品的详情
      *
-     * @param shareProductId
+     * @param shareProductId 分享商品表的id
      * @return
      */
     @Override
@@ -450,6 +450,8 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 添加商品到选品库
      *
+     * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -479,14 +481,13 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
             }
             chooseSet.Add(a);
         });
-
         return true;
     }
 
     /**
      * 查询选品库
      *
-     * @param id
+     * @param id 经销商id
      * @return
      */
     @Override
@@ -501,7 +502,7 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 删除选品库的商品
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -522,9 +523,9 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 查询合作厂商的分享给经销商的商品
      *
-     * @param factoryId
-     * @param user
-     * @param pagePars
+     * @param factoryId 供应商id
+     * @param user      用户对象
+     * @param pagePars  分页参数对象
      * @return
      */
     @Override
@@ -549,8 +550,8 @@ public class SaleGoodsServiceImp implements ISaleGoodsService {
     /**
      * 删除指定经销商中指定供应商的所有商品
      *
-     * @param salerId
-     * @param factoryId
+     * @param salerId   经销商id
+     * @param factoryId 供应商id
      * @return
      */
     @Override

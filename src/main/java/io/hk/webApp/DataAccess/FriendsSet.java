@@ -5,8 +5,6 @@ import com.mongodb.BasicDBObject;
 import io.framecore.Frame.PageData;
 import io.framecore.Mongodb.ExpCal;
 import io.framecore.Mongodb.IMongoQuery;
-import io.hk.webApp.Domain.FriendApply;
-import io.hk.webApp.Domain.Scheme;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import io.framecore.Mongodb.Set;

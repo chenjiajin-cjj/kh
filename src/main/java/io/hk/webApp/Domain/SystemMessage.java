@@ -3,8 +3,6 @@ package io.hk.webApp.Domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.framecore.Orm.ViewStore;
 
-import java.util.Date;
-
 public class SystemMessage extends ViewStore {
     // _id
     @JsonProperty(value = "_id")

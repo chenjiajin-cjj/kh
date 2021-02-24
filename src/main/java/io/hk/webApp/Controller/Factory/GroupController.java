@@ -1,7 +1,6 @@
 package io.hk.webApp.Controller.Factory;
 
 import io.framecore.Frame.Result;
-import io.hk.webApp.Domain.Category;
 import io.hk.webApp.Domain.Group;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.IGroupService;
@@ -13,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.Socket;
-import java.util.List;
 
 /**
  * 分组

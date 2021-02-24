@@ -2,8 +2,6 @@ package io.hk.webApp.dto;
 
 import io.hk.webApp.Domain.Product;
 
-import java.util.List;
-
 public class ShareProduceDTO {
     /**
      * 商品id

@@ -2,7 +2,6 @@ package io.hk.webApp.DataAccess;
 
 
 import io.framecore.Mongodb.Set;
-import io.hk.webApp.Domain.Admin;
 import io.hk.webApp.Domain.LoginLog;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;

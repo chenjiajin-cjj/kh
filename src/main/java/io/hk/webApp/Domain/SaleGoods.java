@@ -2,8 +2,6 @@ package io.hk.webApp.Domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import io.framecore.Aop.Holder;
 import io.framecore.Orm.ViewStore;
 import io.hk.webApp.DataAccess.SaleGoodsSet;
@@ -269,6 +267,20 @@ public class SaleGoods extends ViewStore {
     public void setClassifyId(String classifyId){
         set("classifyId",classifyId);
     }
+
+
+    /* 是否违规 1不违规 2违规 illegal */
+    @JsonProperty(value = "illegal")
+    public String getIllegal() {
+        return (String) get("illegal");
+    }
+
+    @JsonProperty(value = "illegal")
+    public void setIllegal(String illegal) {
+        set("illegal", illegal);
+    }
+
+
     /**
      * 修改
      */

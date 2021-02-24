@@ -9,7 +9,6 @@ import io.hk.webApp.Tools.*;
 import io.hk.webApp.dto.*;
 import io.hk.webApp.test.PPTUtil;
 import io.hk.webApp.vo.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -17,11 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.net.URL;
 import java.util.*;
 
-
+/**
+ * 方案
+ */
 @Service
 public class SchemeServiceImp implements ISchemeService {
 
@@ -60,7 +59,7 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 新建方案
      *
-     * @param scheme
+     * @param scheme 经销商方案对象
      * @return
      */
     @Override
@@ -81,8 +80,8 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 查询经销商自己的方案列表
      *
-     * @param salerId
-     * @param pagePars
+     * @param salerId  经销商id
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -105,7 +104,7 @@ public class SchemeServiceImp implements ISchemeService {
      * 添加商品到方案
      *
      * @param vo
-     * @param userId
+     * @param userId 用户id
      * @return
      */
     @Override
@@ -197,8 +196,7 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 重命名方案
      *
-     * @param scheme
-     * @param id
+     * @param scheme 经销商方案对象
      * @return
      */
     @Override
@@ -230,7 +228,7 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 删除方案
      *
-     * @param id
+     * @param id 方案id
      * @return
      */
     @Override
@@ -244,8 +242,8 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 查询邀请报价页面的合作厂商信息
      *
-     * @param userId
-     * @param pagePars
+     * @param userId   用户id
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -285,6 +283,7 @@ public class SchemeServiceImp implements ISchemeService {
      * 邀请厂商报价
      *
      * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -345,7 +344,10 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 查询方案详情
      *
-     * @param schemeId
+     * @param schemeId 方案id
+     * @param pagePars 分页参数对象
+     * @param user     用户对象
+     * @param type
      * @return
      */
     @Override
@@ -431,8 +433,8 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 查询供应商分享过来的方案列表
      *
-     * @param id
-     * @param pagePars
+     * @param id       经销商id
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -468,7 +470,8 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 查询供应商提报的方案详情
      *
-     * @param factorySchemeId
+     * @param factorySchemeId 供应商方案id
+     * @param pagePars        分页参数对象
      * @return
      */
     @Override
@@ -479,7 +482,7 @@ public class SchemeServiceImp implements ISchemeService {
     /**
      * 删除商品提报管理的方案
      *
-     * @param factorySchemeId
+     * @param factorySchemeId 供应商方案id
      * @return
      */
     @Override
@@ -556,6 +559,7 @@ public class SchemeServiceImp implements ISchemeService {
      * 通知供应商提报商品
      *
      * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -686,6 +690,12 @@ public class SchemeServiceImp implements ISchemeService {
         return scheme.updateById();
     }
 
+    /**
+     * 结束方案
+     *
+     * @param id 经销商方案id
+     * @return
+     */
     @Override
     public boolean over(String id) {
         if (StringUtils.isEmpty(id)) {
@@ -775,6 +785,7 @@ public class SchemeServiceImp implements ISchemeService {
      * 生成ppt
      *
      * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -807,7 +818,7 @@ public class SchemeServiceImp implements ISchemeService {
             }
         }));
         vo.setProductDTOS(productDTOS);
-        String fileName = null;
+        String fileName;
         try {
             fileName = PPTUtil.createPPT(vo);
         } catch (Exception e) {
@@ -816,13 +827,4 @@ public class SchemeServiceImp implements ISchemeService {
         }
         return fileName;
     }
-
-    public static void main(String[] args) throws Exception {
-        String name = ("https://bkimg.cdn.bcebos.com/pic/0df3d7ca7bcb0a46f21f75783429e1246b600c330115?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxODA=,g_7,xp_5,yp_5");
-        URL urlfile = new URL(name);
-        InputStream is = urlfile.openStream();
-        byte[] bytes = IOUtils.toByteArray(is);
-        System.out.println(bytes);
-    }
-
 }

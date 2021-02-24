@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 好友关系
+ */
 @Service
 public class FriendsServiceImp implements IFriendsService {
 
@@ -63,7 +66,8 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 查询客户审核列表
      *
-     * @param pagePars
+     * @param pagePars 分页参数对象
+     * @param userId   用户id
      * @return
      */
     @Override
@@ -114,6 +118,9 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 审核
      *
+     * @param user   用户对象
+     * @param status 1是通过 2是未审核 3是拒绝
+     * @param info   观有关系对象
      * @return
      */
     @Override
@@ -144,7 +151,7 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 批量删除
      *
-     * @param ids
+     * @param ids 好友关系表id数组
      * @return
      */
     @Override
@@ -181,14 +188,15 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 查询审核通过的客户列表
      *
-     * @param pagePars
+     * @param pagePars 分页参数对象
+     * @param userId   用户对象
      * @return
      */
     @Override
     public PageData<FactoryFriendsDTO> searchForPass(TablePagePars pagePars, String userId) {
         PageData<Friends> pageData = friendsSet.search(pagePars.Pars, pagePars.PageSize, pagePars.PageIndex, pagePars.Order, userId);
         List<FactoryFriendsDTO> list = new ArrayList<>();
-        List<User> users = userSet.Where("fatherId=?",userId).ToList();
+        List<User> users = userSet.Where("fatherId=?", userId).ToList();
         pageData.rows.forEach((a) -> {
             FactoryFriendsDTO dto = new FactoryFriendsDTO();
             dto.setSonAccount("");
@@ -224,15 +232,15 @@ public class FriendsServiceImp implements IFriendsService {
                     dto.setImg(user.getImg());
                 }
                 for (int i = 0; i < users.size(); i++) {
-                    boolean res = isNotFriend(users.get(i).getId(),user.getId());
-                    if(!res){
+                    boolean res = isNotFriend(users.get(i).getId(), user.getId());
+                    if (!res) {
                         String son = dto.getSonAccount() + users.get(i).getName() + ",";
                         dto.setSonAccount(son);
                     }
                 }
             }
             try {
-                dto.setSonAccount(dto.getSonAccount().substring(0,dto.getSonAccount().length() - 1));
+                dto.setSonAccount(dto.getSonAccount().substring(0, dto.getSonAccount().length() - 1));
             } catch (Exception e) {
             }
             list.add(dto);
@@ -262,8 +270,8 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 添加黑名单
      *
-     * @param blackId
-     * @param userId
+     * @param blackId 黑名单表id
+     * @param userId  用户id
      * @return
      */
     @Override
@@ -281,7 +289,7 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 查询黑名单列表
      *
-     * @param userId
+     * @param userId 用户id
      * @return
      */
     @Override
@@ -304,7 +312,9 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 一方向另一方请求合作
      *
-     * @param friendApply
+     * @param friendApply 好友申请表对象
+     * @param user        用户对象
+     * @param type        1是供应商 2是今经销商
      * @return
      */
     @Override
@@ -363,7 +373,8 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 设置供应商为核心
      *
-     * @param id
+     * @param id     好友关系表id
+     * @param userId 用户id
      * @return
      */
     @Override
@@ -387,6 +398,7 @@ public class FriendsServiceImp implements IFriendsService {
      * 发送报价
      *
      * @param vo
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -452,8 +464,9 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 展示发送报价页的商品清单
      *
-     * @param salerId
-     * @param user
+     * @param salerId  经销商id
+     * @param user     用户对象
+     * @param pagePars 分页参数对象
      * @return
      */
     @Override
@@ -470,7 +483,7 @@ public class FriendsServiceImp implements IFriendsService {
                     if (saleGoods.get(i).getProductId().equals(a.getId())) {
                         dto.setStatus(BaseType.ShareProductStatus.ACCEPT.getCode());
                         dto.setPrice(saleGoods.get(i).getPrice());
-                        if(null != saleGoods.get(i).getPrice() && (saleGoods.get(i).getPrice() > 0 || saleGoods.get(i).getPriceTax() > 0)){
+                        if (null != saleGoods.get(i).getPrice() && (saleGoods.get(i).getPrice() > 0 || saleGoods.get(i).getPriceTax() > 0)) {
                             a.setSupplyPriceTaxNo(saleGoods.get(i).getPrice());
                             a.setSupplyPriceTax(saleGoods.get(i).getPriceTax());
                             break;
@@ -503,7 +516,7 @@ public class FriendsServiceImp implements IFriendsService {
      * 修改已发送报价的商品的价格
      *
      * @param vo
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -531,7 +544,7 @@ public class FriendsServiceImp implements IFriendsService {
      * 批量转移子账号
      *
      * @param vo
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -571,7 +584,7 @@ public class FriendsServiceImp implements IFriendsService {
      * 索要报价
      *
      * @param vo
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -604,7 +617,7 @@ public class FriendsServiceImp implements IFriendsService {
     /**
      * 查询客户审核的条数
      *
-     * @param user
+     * @param user 用户对象
      * @return
      */
     @Override
@@ -614,8 +627,9 @@ public class FriendsServiceImp implements IFriendsService {
 
     /**
      * 经销商解除合作的同时删除供应商的所有商品
-     * @param id
-     * @param saler
+     *
+     * @param id    好友关系表id
+     * @param saler 经销商用户对象
      * @return
      */
     @Override
@@ -643,9 +657,16 @@ public class FriendsServiceImp implements IFriendsService {
         } else {
             friendApplySet.Delete(friendApply.getId());
         }
-        return saleGoodsService.removeSalerProductFromFactory(saler.getId(),friendId);
+        return saleGoodsService.removeSalerProductFromFactory(saler.getId(), friendId);
     }
 
+    /**
+     * 是否是好友 false = 是  true = 不是
+     *
+     * @param userId
+     * @param friendId
+     * @return
+     */
     public boolean isNotFriend(String userId, String friendId) {
         return null == friendsSet.Where("(userId=?)and(friendId=?)", userId, friendId).First();
     }

@@ -7,8 +7,6 @@ import io.hk.webApp.DataAccess.AuthApplySet;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-
 public class AuthApply extends ViewStore {
 
     // _id
@@ -71,6 +69,16 @@ public class AuthApply extends ViewStore {
         set("status", status);
     }
 
+    /* 反馈详情  feedback*/
+    @JsonProperty(value = "feedback")
+    public String getFeedback() {
+        return (String) get("feedback");
+    }
+
+    @JsonProperty(value = "feedback")
+    public void setFeedback(String feedback) {
+        set("feedback", feedback);
+    }
     /**
      * 根据id修改
      *

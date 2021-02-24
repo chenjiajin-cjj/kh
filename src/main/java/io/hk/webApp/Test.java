@@ -2,13 +2,12 @@ package io.hk.webApp;
 
  
 import io.framecore.Aop.Holder;
-import io.framecore.Frame.JFrameException;
-import io.framecore.Tool.HttpHelp;
 import io.framecore.Tool.Md5Help;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.BsonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
 import java.util.*;
@@ -17,8 +16,16 @@ public class Test {
 	
 	public static void main(String[] args)  {
 		ProductSet product = Holder.getBean(ProductSet.class);
+		UserSet userSet = Holder.getBean(UserSet.class);
 		product.ToList().forEach((a)->{
+			User user;
+			if(StringUtils.isNotEmpty(a.getFactoryId())){
+				user = userSet.Get(a.getFactoryId());
+			}else{
+				user = userSet.Get(a.getSalerId());
+			}
 			a.setIllegal("1");
+			a.setCname(StringUtils.isNotEmpty(user.getCompanyName()) ? user.getCompanyName() : "未知");
 			product.Update(a.getId(),a);
 		});
 	}

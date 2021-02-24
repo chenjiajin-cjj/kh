@@ -9,11 +9,9 @@ import io.framecore.Mongodb.IMongoQuery;
 import io.framecore.Mongodb.Set;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Tools.TablePagePars;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.Hashtable;
 
 @Repository(value = "OperationLogSet")

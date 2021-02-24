@@ -53,27 +53,27 @@ public class PPTUtil {
 //                String imagePath = "https://bkimg.cdn.bcebos.com/pic/0df3d7ca7bcb0a46f21f75783429e1246b600c330115?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxODA=,g_7,xp_5,yp_5";
 
                 String imagePath = null;
-                if(StringUtils.isNotEmpty(productDTO.getProduct().getImage1())){
+                if (StringUtils.isNotEmpty(productDTO.getProduct().getImage1())) {
                     imagePath = productDTO.getProduct().getImage1();
-                }else{
+                } else {
                     imagePath = "1";
                 }
-                String [] imgs = imagePath.split("==");
+                String[] imgs = imagePath.split("==");
 
                 for (int i = 0; i < imgs.length; i++) {
                     URL urlfile = new URL(QINIU_PATH + imgs[i]);
                     InputStream is = urlfile.openStream();
                     byte[] bytes = IOUtils.toByteArray(is);
                     XSLFPictureData idx = ppt.addPicture(bytes, XSLFPictureData.PictureType.JPEG);
-                    if(i == 0){
+                    if (i == 0) {
                         XSLFPictureShape pic = slide.createPicture(idx);
                         pic.setAnchor(new Rectangle2D.Double(0, 0, 300, 300));
                     }
-                    if(i == 1){
+                    if (i == 1) {
                         XSLFPictureShape pic1 = slide.createPicture(idx);
                         pic1.setAnchor(new Rectangle2D.Double(0, 300, 150, 200));
                     }
-                    if(i == 2){
+                    if (i == 2) {
                         XSLFPictureShape pic2 = slide.createPicture(idx);
                         pic2.setAnchor(new Rectangle2D.Double(150, 300, 150, 200));
                         break;

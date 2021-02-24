@@ -2,13 +2,10 @@ package io.hk.webApp.Controller.Saler;
 
 import io.framecore.Frame.PageData;
 import io.framecore.Frame.Result;
-import io.hk.webApp.DataAccess.FriendsSet;
-import io.hk.webApp.DataAccess.UserSet;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Service.IFriendsService;
 import io.hk.webApp.Service.IDynamicService;
 import io.hk.webApp.Service.IProductService;
-import io.hk.webApp.Service.IUserService;
 import io.hk.webApp.Tools.BaseType;
 import io.hk.webApp.Tools.OtherExcetion;
 import io.hk.webApp.Tools.SystemUtil;
@@ -60,7 +57,7 @@ public class SalerDynamicContorller {
     public Result cooperation(@RequestBody FriendApply friendApply) {
         User user = systemUtil.getUser(httpServletRequest);
         if (StringUtils.isAnyEmpty(user.getTel(), user.getName(), user.getCompanyName(), user.getProvince(), user.getAddr())) {
-            throw new OtherExcetion(-10,"完善用户资料后方可进行操作");
+            throw new OtherExcetion(-10, "完善用户资料后方可进行操作");
         }
         friendApply.setApply("无");
         return friendsService.cooperation(friendApply, user, BaseType.UserType.SALER.getCode()) ? Result.succeed("操作成功") : Result.failure("操作失败");

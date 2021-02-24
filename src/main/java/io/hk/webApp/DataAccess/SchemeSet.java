@@ -6,17 +6,11 @@ import io.framecore.Frame.PageData;
 import io.framecore.Mongodb.ExpCal;
 import io.framecore.Mongodb.IMongoQuery;
 import io.framecore.Mongodb.Set;
-import io.hk.webApp.Domain.Product;
-import io.hk.webApp.Domain.SaleGoods;
 import io.hk.webApp.Domain.Scheme;
-import io.hk.webApp.Tools.BsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
-
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 /**
  * 方案

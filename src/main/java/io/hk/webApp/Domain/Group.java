@@ -7,7 +7,6 @@ import io.hk.webApp.DataAccess.GroupSet;
 import io.hk.webApp.Tools.OtherExcetion;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**

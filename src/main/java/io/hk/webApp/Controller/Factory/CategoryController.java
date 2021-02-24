@@ -1,7 +1,6 @@
 package io.hk.webApp.Controller.Factory;
 
 import io.framecore.Frame.Result;
-import io.hk.webApp.Domain.Brand;
 import io.hk.webApp.Domain.Category;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Service.ICategoryService;

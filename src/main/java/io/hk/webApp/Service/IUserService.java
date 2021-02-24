@@ -1,7 +1,5 @@
 package io.hk.webApp.Service;
 
-import io.framecore.Frame.Result;
-import io.hk.webApp.Domain.AuthApply;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.Tools.TablePagePars;
 import io.hk.webApp.vo.UserPasswordUpdateVO;
@@ -106,4 +104,11 @@ public interface IUserService {
      * @return
      */
     boolean sendAuthApply(User user);
+
+    /**
+     * 修改基本设置
+     * @param user
+     * @return
+     */
+    boolean updateUserMsg(User user);
 }

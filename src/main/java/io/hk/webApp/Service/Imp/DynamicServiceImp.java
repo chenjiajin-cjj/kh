@@ -1,8 +1,6 @@
 package io.hk.webApp.Service.Imp;
 
-import io.framecore.Aop.Holder;
 import io.framecore.Frame.PageData;
-import io.framecore.Frame.Result;
 import io.hk.webApp.DataAccess.*;
 import io.hk.webApp.Domain.*;
 import io.hk.webApp.Service.IDynamicService;
@@ -15,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+/**
+ * 动态
+ */
 @Service
 public class DynamicServiceImp implements IDynamicService {
 
@@ -38,7 +38,7 @@ public class DynamicServiceImp implements IDynamicService {
     /**
      * 供应商发布动态
      *
-     * @param dynamic
+     * @param dynamic 动态对象
      * @return
      */
     @Override
@@ -50,7 +50,8 @@ public class DynamicServiceImp implements IDynamicService {
     /**
      * 查询供应商自己的动态集合
      *
-     * @param pagePars
+     * @param pagePars 分页参数对象
+     * @param user     用户对象
      * @return
      */
     @Override
@@ -75,6 +76,9 @@ public class DynamicServiceImp implements IDynamicService {
     /**
      * 查询所有动态合作或者未合作
      *
+     * @param type     0查全部 1查合作 其余查不合作
+     * @param pagePars 分页参数对象
+     * @param salerId  经销商id
      * @return
      */
     @Override
@@ -154,8 +158,8 @@ public class DynamicServiceImp implements IDynamicService {
             List<Friends> friends = friendsSet.Where("userId=?", salerId).Limit(pagePars.PageSize, pagePars.PageIndex).ToList();
             List<User> users = userSet.Where("type=?", BaseType.UserType.FACTORY.getCode()).Limit(pagePars.PageSize, pagePars.PageIndex).ToList();
             List<User> notFriends = new ArrayList<>(users);
-            users.forEach((a)-> friends.forEach((b)->{
-                if(a.getId().equals(b.getFriendId())){
+            users.forEach((a) -> friends.forEach((b) -> {
+                if (a.getId().equals(b.getFriendId())) {
                     notFriends.remove(a);
                 }
             }));
@@ -196,7 +200,7 @@ public class DynamicServiceImp implements IDynamicService {
     /**
      * 获取厂商信息
      *
-     * @param factoryId
+     * @param factoryId 厂商id
      * @return
      */
     @Override

@@ -5,11 +5,10 @@ import io.hk.webApp.Domain.Group;
 import io.hk.webApp.Domain.User;
 import io.hk.webApp.vo.GroupSortVO;
 
-import java.util.List;
-
 public interface IGroupService {
     /**
      * 添加分组
+     *
      * @param group
      * @return
      */
@@ -17,6 +16,7 @@ public interface IGroupService {
 
     /**
      * 重命名分组
+     *
      * @param group
      * @return
      */
@@ -24,6 +24,7 @@ public interface IGroupService {
 
     /**
      * 删除分组
+     *
      * @param id
      * @return
      */
@@ -31,6 +32,7 @@ public interface IGroupService {
 
     /**
      * 排序
+     *
      * @param vo
      * @return
      */
@@ -38,12 +40,14 @@ public interface IGroupService {
 
     /**
      * 展示分组及其下级信息
+     *
      * @return
      */
     PageData<Group> search(User user);
 
     /**
      * 隐藏或显示分组
+     *
      * @param id
      * @return
      */

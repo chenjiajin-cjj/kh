@@ -3,15 +3,11 @@ package io.hk.webApp.Controller;
 import com.qiniu.util.Auth;
 import io.framecore.Frame.Result;
 import io.framecore.Tool.PropertiesHelp;
-import io.framecore.redis.CacheHelp;
-import io.hk.webApp.Tools.AccessToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/base/")

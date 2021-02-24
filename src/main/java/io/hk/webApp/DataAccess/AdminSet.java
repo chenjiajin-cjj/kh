@@ -8,7 +8,6 @@ import io.framecore.Mongodb.ExpCal;
 import io.framecore.Mongodb.IMongoQuery;
 import io.framecore.Mongodb.Set;
 import io.hk.webApp.Domain.Admin;
-import io.hk.webApp.Domain.BrandSystem;
 import io.hk.webApp.Tools.TablePagePars;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;

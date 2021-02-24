@@ -12,6 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 品牌
+ */
 @Service
 public class BrandServiceImp implements IBrandService {
 
@@ -20,17 +23,19 @@ public class BrandServiceImp implements IBrandService {
 
     /**
      * 添加品牌
-     * @param brand
+     *
+     * @param brand 品牌对象
+     * @param user  user对象
      * @return
      */
     @Override
-    public boolean addBrand(Brand brand,User user) {
+    public boolean addBrand(Brand brand, User user) {
         brand.setDetails("无");
         brand.setPerpetual(BaseType.Status.YES.getCode());
-        if(StringUtils.isAnyEmpty(brand.getName(), brand.getDetails(),brand.getPerpetual())){
+        if (StringUtils.isAnyEmpty(brand.getName(), brand.getDetails(), brand.getPerpetual())) {
             throw new OtherExcetion("请完善必填项");
         }
-        if(null == brand.getTime()){
+        if (null == brand.getTime()) {
             brand.setTime(System.currentTimeMillis());
         }
         brand.setStatus(BaseType.Consent.BASE.getCode());
@@ -40,16 +45,17 @@ public class BrandServiceImp implements IBrandService {
 
     /**
      * 查询品牌列表
-     * @param pagePars
+     *
+     * @param pagePars  分页参数对象
      * @return
      */
     @Override
     public PageData<Brand> search(TablePagePars pagePars, User user) {
-        return brandSet.search(pagePars.Pars,pagePars.PageSize,pagePars.PageIndex,pagePars.Order,user);
+        return brandSet.search(pagePars.Pars, pagePars.PageSize, pagePars.PageIndex, pagePars.Order, user);
     }
 
     @Override
     public boolean update(Brand brand) {
-        return brandSet.Update(brand.getId(),brand) > 0;
+        return brandSet.Update(brand.getId(), brand) > 0;
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import io.framecore.Mongodb.Set;
 import io.hk.webApp.Domain.Blacklist;
  
- 
 
 @Repository(value="BlacklistSet")
 @Scope(value="prototype")
